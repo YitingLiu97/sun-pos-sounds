@@ -20,7 +20,10 @@ let songURL;
 let button;
 let shiftSlider;
 // let wetMix;
-songURL = "BranchinMeramecRiver.mp3";
+let songRoot = "../../assets/";
+
+let song = "BranchinMeramecRiver.mp3";
+songURL =songRoot+song;
 let songLength;
 let grainPlayer;
 let distortion, distortionSlider; //not too obvious - has to connect to toMaster();

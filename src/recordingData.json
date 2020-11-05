@@ -1,0 +1,62 @@
+[
+ {
+   "Recording": "BranchinMeramecRiver",
+   "Date": "2020-10-09",
+   "Duraction": "1:26",
+   "Latitude": 38.53785414,
+   "Logitude": -90.56551986,
+   "Time": "America/Chicago",
+   "Country": "United States of America",
+   "City": "Missouri",
+   "Town": "Saint Louis County",
+   "Link": "https://archive.org/details/aporee_51287_58532"
+ },
+ {
+   "Recording": "bruneuve",
+   "Date": "2018-08-25",
+   "Duraction": "6:00",
+   "Latitude": 50.85151843,
+   "Logitude": 4.354662984,
+   "Time": "",
+   "Country": "Rue Neuve 34, 1000 Bruxelles, Belgium",
+   "City": "",
+   "Town": "",
+   "Link": "https://archive.org/details/aporee_41111_46914"
+ },
+ {
+   "Recording": "PlaceduGrandHospice",
+   "Date": "2020-10-01",
+   "Duraction": "4:33",
+   "Latitude": 50.85330659,
+   "Logitude": 4.35006568,
+   "Time": "",
+   "Country": "Brussels Hoofdstedelijk Gewest, België - Belgique - Belgien",
+   "City": "",
+   "Town": "",
+   "Link": "https://archive.org/details/aporee_51193_58427"
+ },
+ {
+   "Recording": "enteringmaindrinkingsuite",
+   "Date": "7/25/2020",
+   "Duraction": "5:10",
+   "Latitude": 49.41701868,
+   "Logitude": 20.95757005,
+   "Time": " Europe/Warsaw",
+   "Country": "Krynica-Zdrój, gmina Krynica-Zdrój, powiat nowosądecki, województwo małopolskie, Polska",
+   "City": "",
+   "Town": "",
+   "Link": "https://archive.org/details/aporee_50535_57631"
+ },
+ {
+   "Recording": "alytusbridge",
+   "Date": "2020-10-22",
+   "Duraction": "3:09",
+   "Latitude": 54.39328681,
+   "Logitude": 24.08168383,
+   "Time": "",
+   "Country": "Alytus, Alytaus miesto savivaldybė, Alytaus apskritis, Lietuva",
+   "City": "",
+   "Town": "",
+   "Link": "https://archive.org/details/aporee_51302_58548"
+ }
+]

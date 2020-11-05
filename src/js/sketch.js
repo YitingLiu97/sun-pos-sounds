@@ -14,7 +14,6 @@ How to convert the audio file into JSON but still play it as sound here?
 *******/
 
 let sun_altitude, sun_distance, moon_altitude, moon_distance;
-
 let shifter, player;
 let songURL;
 let button;
@@ -27,7 +26,7 @@ songURL = songs[2];
 songURL2 = songs[1];
 
 let songLength;
-let grainPlayer;
+
 let distortionEffect = 0.2,
   distortionSlider; //not too obvious - has to connect to toMaster();
 let pingPong, pingPongSlider;
@@ -39,23 +38,45 @@ let filter, feedbackDelay;
 let loopStart = 0,
   loopEnd = 0;
 let loopStartSlider, loopEndSlider;
-let grainSize = 0.1,
-  grainSizeSlider;
+
 
 let cuoffFreq = 400;
 let cutoffFreqSlider;
 
-let fadeInTime=0, fadeOutTime=0; // change the fade in fade out time based on the sun 
+let fadeInTime = 0,
+  fadeOutTime = 0; // change the fade in fade out time based on the sun 
+let path, recordingLink;
 
 function preload() {
   //read sun API 
-  path = "https://api.ipgeolocation.io/astronomy?apiKey=e01854cbed884f7d97f31665ef5d352e";
-  httpDo(path, 'GET', readResponse);
+  // path = "https://api.ipgeolocation.io/astronomy?apiKey=e01854cbed884f7d97f31665ef5d352e";
+  // httpDo(path, 'GET', readResponse);
+
+  recordingLink = loadJSON("../src/recordingData.json");
+
+
+
+
+}
+
+let duration, RLat,RLog,Rlink;
+// console.log(recordingData(recordingLink))
+
+// need to fix the CORS issue - create your own express client based file - medium post - https://medium.com/@dtkatz/3-ways-to-fix-the-cors-error-and-how-access-control-allow-origin-works-d97d55946d9
+function recordingData(response){
+
+
+Rlink=response[1].Link;
+console.log(response)
+console.log("Rlink",Rlink);
 
 }
 
 
 function setup() {
+
+recordingData(recordingLink);
+
   //manipulate field recordings 
   songLength = new Tone.Time().valueOf();
 
@@ -81,34 +102,38 @@ function setup() {
   // routing a sine tone in the left channel
   // player2 = new Tone.Player({
   //   "url": songURL2,
-  //   "autostart": false,
+  //   "autostart": true,
   //   "loop": true, //set the loop to be true to use loopstart and loopend
-  //   "loopStart": loopStart,
-  //   "loopEnd": loopEnd,
+  //   "loopStart": 0,
+  //   "loopEnd": 100,
   //   "reverse": false,
-  //   "duration": 1,
+  //   "duration": 10,
   //   "fadeIn": 0,
   //   "fadeOut": 0
 
   // });
 
+  // player2.toMaster();
+
+
+  // further dev 
+  //use channel instead: https://tonejs.github.io/docs/14.7.58/Channel
+  //if sound shitty, do the clipping 
+
+
+  //bandpass filter/ comb filter - resonance 
+  // https://tonejs.github.io/docs/14.7.58/FeedbackCombFilter
+
+  // transpose it and then put it in sampler 
+
+
   // can you have two players in the scene 
+  // left center right - surround cable output 
   // player.connect(merge, 0, 0).start();
   // and noise in the right channel
-  // player2.connect(merge, 0, 1).start();;
+  // player2.connect(merge, 0, 1).start();
 
-  // grainPlayer = new Tone.GrainPlayer({
-  //   "onload": songURL,
-  //   "overlap": 0.1,
-  //   "grainSize": grainSize,
-  //   "playbackRate": 1,
-  //   "detune": 0,
-  //   "loop": false,
-  //   "loopStart": loopStart,
-  //   "loopEnd": loopEnd,
-  //   "reverse": false
-  // });
-
+  // mimic the keyboard 
   // var sampler = new Tone.Sampler({
   //   "C3" : "path/to/C3.mp3",
   //   "D#3" : "path/to/Dsharp3.mp3",
@@ -122,10 +147,10 @@ function setup() {
   // player.connect(sampler)
 
 
-  // pingPong=new Tone.PingPongDelay({
-  //   "delayTime":0.25,
-  //   "maxDelayTime":1
-  // }).toMaster();
+  pingPong = new Tone.PingPongDelay({
+    "delayTime": 0.25,
+    "maxDelayTime": 1
+  }).toMaster();
   // player.connect(pingPong);
 
   // player.connect(grainPlayer);
@@ -135,27 +160,13 @@ function setup() {
   }).toMaster();
 
 
-  // player.connect(shifter);
-  // player.connect(distortion); // distortion does not work if i have shifter
-
+  //order of the effect matters 
   player.chain(shifter, distortion, filter, feedbackDelay, Tone.Master);
-  //can you do pingpong for clip? 
-  // pingPong = new Tone.PingPongDelay("4n", 0.2).toMaster();
-  // player.connect(pingPong);
 
-  // var drum = new Tone.Synth().connect(pingPong);
-  //how to create pingpong effect for clips?
-
-  // drum.triggerAttackRelease("100", "32n");
-
-  // const filter = new Tone.Filter("G5").toMaster();
-  //   player.fan(shifter, filter);//not working 
-
-  //  let osc = new Tone.Oscillator("C2").start();
-  // osc.toDestination();
-
+  let bgCnavas =  createCanvas(windowWidth, windowHeight);
+  bgCnavas.id("bg");
+  document.getElementById("bg").style.zIndex="1";
   
-  createCanvas(windowWidth, windowHeight);
   shiftSlider = createSlider(-12, 12, 2, 1);
   shiftSlider.style("width", "200px");
   shiftSlider.position(width / 2 - 100, height / 2 + 150);
@@ -175,10 +186,6 @@ function setup() {
   loopEndSlider.style("width", "200px");
   loopEndSlider.position(width / 2 - 100, height / 2 + 270);
 
-  grainSizeSlider = createSlider(0, 1, 1, 0);
-  grainSizeSlider.style("width", "200px");
-  grainSizeSlider.position(width / 2 - 100, height / 2 + 340);
-
   distortionSlider = createSlider(0, 1, 0.1, 0);
   distortionSlider.style("width", "200px");
   distortionSlider.position(width / 2 - 100, height / 2 + 340);
@@ -189,14 +196,13 @@ function setup() {
 
 }
 /*Avoiding putting any sound triggering functions in draw() for this example
-   */
+ */
 function draw() {
-  
+
   shifter.pitch = shiftSlider.value();
   loopStart = loopStartSlider.value();
   loopEnd = loopEndSlider.value();
   cutoffFreq = cutoffFreqSlider.value();
-  grainSize = grainSizeSlider.value();
   distortionEffect = distortionSlider.value();
   background(143, 204, 124);
 
@@ -232,6 +238,7 @@ function draw() {
 
 function play1() {
   player.start();
+  // player2.start();
 }
 
 
@@ -241,14 +248,16 @@ function readResponse(response) {
 
   let data = JSON.parse(response);
   console.log("data", data);
-  sun_altitude = data.sun_altitude;
-  moon_altitude = data.moon_altitude;
-  sun_distance = data.sun_distance;
-  moon_distance = data.moon_distance;
+  // sun_altitude = data.sun_altitude;
+  // moon_altitude = data.moon_altitude;
+  // sun_distance = data.sun_distance;
+  // moon_distance = data.moon_distance;
   // console.log("sun_altitude", sun_altitude);
   // console.log("sun_altitude", sun_altitude);
   // console.log("sun_altitude", sun_altitude);
   // console.log("sun_altitude", sun_altitude);
+
+
 
 
 }
@@ -277,6 +286,6 @@ crossFade.fade.value = 0.5;
  */
 
 
- //getting the kinect data and people also manipulate something similiar in the clip 
+//getting the kinect data and people also manipulate something similiar in the clip 
 
- // would be a symphone of sun and us - sun is always playing in the background; human movement geneerate something else
+// would be a symphone of sun and us - sun is always playing in the background; human movement geneerate something else

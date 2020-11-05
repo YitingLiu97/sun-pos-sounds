@@ -1,3 +1,4 @@
+//later create this for visuals or use touch designer with max?
 //mouse position controls the wind direction
 //music controls the mass - gravity = mass * accelartion
 

@@ -59,23 +59,23 @@ function preload() {
 
 }
 
-let duration, RLat,RLog,Rlink;
+let duration, RLat, RLog, Rlink;
 // console.log(recordingData(recordingLink))
 
 // need to fix the CORS issue - create your own express client based file - medium post - https://medium.com/@dtkatz/3-ways-to-fix-the-cors-error-and-how-access-control-allow-origin-works-d97d55946d9
-function recordingData(response){
+function recordingData(response) {
 
 
-Rlink=response[1].Link;
-console.log(response)
-console.log("Rlink",Rlink);
+  Rlink = response[1].Link;
+  console.log(response)
+  console.log("Rlink", Rlink);
 
 }
 
 
 function setup() {
 
-recordingData(recordingLink);
+  recordingData(recordingLink);
 
   //manipulate field recordings 
   songLength = new Tone.Time().valueOf();
@@ -163,10 +163,12 @@ recordingData(recordingLink);
   //order of the effect matters 
   player.chain(shifter, distortion, filter, feedbackDelay, Tone.Master);
 
-  let bgCnavas =  createCanvas(windowWidth, windowHeight);
-  bgCnavas.id("bg");
-  document.getElementById("bg").style.zIndex="1";
-  
+  let bgCnavas = createCanvas(windowWidth / 2, windowHeight / 2);
+  // let bgCnavas =  createCanvas(2000, 2000);
+
+  // bgCnavas.id("bg");
+  // document.getElementById("bg").style.zIndex="1";
+
   shiftSlider = createSlider(-12, 12, 2, 1);
   shiftSlider.style("width", "200px");
   shiftSlider.position(width / 2 - 100, height / 2 + 150);

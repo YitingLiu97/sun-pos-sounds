@@ -83,7 +83,8 @@ function preload() {
   httpDo(issPath, 'GET', readResponseISS);
 
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
-  recordingPath = `https://cors-anywhere.herokuapp.com/${Audio_URL}`;
+  //created my own server 
+  recordingPath = `https://proxy-server-yt.herokuapp.com/${Audio_URL}`;
 
   const myHeaders = new Headers();
 

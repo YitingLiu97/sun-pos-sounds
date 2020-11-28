@@ -13,7 +13,25 @@ How to convert the audio file into JSON but still play it as sound here?
 4. 
 *******/
 
-let sun_altitude, sun_distance, moon_altitude, moon_distance;
+//getting the api from aporee 
+// let Audio_API = process.env.Aduio_API;
+// let audioLat, audioLog;
+
+// let Audio_URL = Audio_API + `lat=${audioLat}&lng=${audioLog}`;
+
+//test to see if the audio url works with tone js 
+
+
+/***
+ * sun distance decides the length of the music
+ * ISS lon and lat decides + sun altitude decides the range of the music to play 
+ * seletc one music 
+ * chop them up based on the changing variables 
+ */
+
+
+
+let sun_altitude, lat, lon;
 let shifter, player;
 let songURL;
 let button;
@@ -22,9 +40,15 @@ let shiftSlider;
 let songRoot = "../../assets/";
 let songs = [songRoot + "alytusbridge.mp3", songRoot + "BranchinMeramecRiver.mp3", songRoot + "bruneuve.mp3", songRoot + "enteringmaindrinkingsuite.mp3", songRoot + "PlaceduGrandHospice.mp3"];
 // let song = "BranchinMeramecRiver.mp3";
-songURL = songs[2];
-songURL2 = songs[1];
+// songURL = songs[2];
+// songURL2 = songs[1];
 
+let newLat = 52.5;
+let newLon = 13.5;
+
+let Audio_URL;
+
+// songURL = "https://cors-anywhere.herokuapp.com/https://aporee.org/maps/files/9EdDamazintheedrinken1525.mp3"
 let songLength;
 
 let distortionEffect = 0.2,
@@ -47,42 +71,73 @@ let fadeInTime = 0,
   fadeOutTime = 0; // change the fade in fade out time based on the sun 
 let path, recordingLink;
 
+// Access to fetch failed 
+
 function preload() {
   //read sun API 
-  // path = "https://api.ipgeolocation.io/astronomy?apiKey=e01854cbed884f7d97f31665ef5d352e";
-  // httpDo(path, 'GET', readResponse);
+  sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=e01854cbed884f7d97f31665ef5d352e";
+  httpDo(sunPath, 'GET', readResponse);
 
-  recordingLink = loadJSON("../src/recordingData.json");
+  //read ISS API 
+  issPath = "https://api.wheretheiss.at/v1/satellites/25544";
+  httpDo(issPath, 'GET', readResponseISS);
 
+  Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
+  recordingPath = `https://cors-anywhere.herokuapp.com/${Audio_URL}`;
 
+  const myHeaders = new Headers();
 
+  const myRequest = new Request(recordingPath, {
+    method: 'GET',
+    headers: myHeaders,
+    mode: 'no-cors',
+    cache: 'default'
+  });
+
+  //try using express to test the speed 
+  fetch(recordingPath, {
+      "headers": {
+        // "accept": "*/*",
+        // "accept-language": "en-US,en;q=0.9",
+        // "cache-control": "no-cache",
+        // "pragma": "no-cache",
+        // "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "cross-site"
+      },
+      "referrerPolicy": "no-referrer-when-downgrade",
+      "body": null,
+      "method": "GET",
+      "mode": "cors",
+      "credentials": "omit"
+    }).then(response => response.json())
+    .then(myBlob => {
+      console.log(myBlob)
+      recordingLink = myBlob[0].url;
+      console.log("recordingLink", recordingLink);
+      return recordingLink;
+
+    });
 
 }
 
 let duration, RLat, RLog, Rlink;
-// console.log(recordingData(recordingLink))
 
-// need to fix the CORS issue - create your own express client based file - medium post - https://medium.com/@dtkatz/3-ways-to-fix-the-cors-error-and-how-access-control-allow-origin-works-d97d55946d9
-function recordingData(response) {
-
-
-  Rlink = response[1].Link;
-  console.log(response)
-  console.log("Rlink", Rlink);
-
-}
-
+let buffer, buff;
+buffer = new Tone.Buffer(songURL, function () {
+  //the buffer is now available.
+  buff = buffer.get();
+});
 
 function setup() {
-
-  recordingData(recordingLink);
-
   //manipulate field recordings 
+
   songLength = new Tone.Time().valueOf();
 
   shifter = new Tone.PitchShift().toMaster();
 
   player = new Tone.Player({
+    "onload": Tone.noOp,
     "url": songURL,
     "autostart": false,
     "loop": true, //set the loop to be true to use loopstart and loopend
@@ -240,40 +295,25 @@ function draw() {
 
 function play1() {
   player.start();
-  // player2.start();
+  player2.start();
 }
 
 
+function readResponseISS(e) {
+  let ISSdata = JSON.parse(e);
+  lat = ISSdata.latitude;
+  lon = ISSdata.longitude;
+  console.log("lat", lat);
+  console.log("lon", lon);
 
+}
 
 function readResponse(response) {
-
   let data = JSON.parse(response);
-  console.log("data", data);
-  // sun_altitude = data.sun_altitude;
-  // moon_altitude = data.moon_altitude;
-  // sun_distance = data.sun_distance;
-  // moon_distance = data.moon_distance;
-  // console.log("sun_altitude", sun_altitude);
-  // console.log("sun_altitude", sun_altitude);
-  // console.log("sun_altitude", sun_altitude);
-  // console.log("sun_altitude", sun_altitude);
-
-
-
+  sun_altitude = data.sun_altitude;
+  console.log("sun_altitude", sun_altitude);
 
 }
-/************
-//compare the sun altitude and istance with the longitude and altitude of the area
-// randomly pick one audio file and play 
-function getOneFile(){
-
-  //return the url of the file 
-  return ;
-}
-
-*/
-
 
 /************
 function crossFade(sound1,sound2){

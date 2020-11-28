@@ -18,16 +18,15 @@ function setup() {
   background(0);
   noStroke();
   initKinectron();
-
   playSound();
 
 }
 
-function touchStarted() {
-  if (getAudioContext().state !== 'running') {
-    getAudioContext().resume();
-  }
-}
+// function touchStarted() {
+//   if (getAudioContext().state !== 'running') {
+//     getAudioContext().resume();
+//   }
+// }
 
 function initKinectron() {
   kinectron = new Kinectron(kinectronIpAddress);
@@ -164,30 +163,30 @@ function playSound() {
   noise.volume.value = -26;
   noise.stop("+2n");//set the stop time for noise 
  */
-let val1;
-//val1 determines the melody of the note? 
- let val3=2.5;
- let val2 = 200; //can change from 100 to 1000
+  let val1;
+  //val1 determines the melody of the note? 
+  let val3 = 2.5;
+  let val2 = 200; //can change from 100 to 1000
 
   const feedbackDelay = new Tone.FeedbackDelay("8n", 0.5).toMaster();
   const pingPong = new Tone.PingPongDelay("2", 0.2).toMaster();
   const filter = new Tone.Filter(val2, "lowpass").toMaster();
   const tremolo = new Tone.Tremolo(9, 0.75).toMaster();
   const reverb = new Tone.JCReverb(0.8).toMaster();
-  const chorus = new Tone.Chorus(8, val3, 0.5);//change val3 from 2 - 10
+  const chorus = new Tone.Chorus(8, val3, 0.5); //change val3 from 2 - 10
 
-  const metalSynth = new Tone.MetalSynth().chain(chorus,filter, feedbackDelay, tremolo, phaser, pingPong,reverb, Tone.Master);
+  const metalSynth = new Tone.MetalSynth().chain(chorus, filter, feedbackDelay, tremolo, phaser, pingPong, reverb, Tone.Master);
   metalSynth.triggerAttackRelease("E3", 1);
-  metalSynth.volume.value=5;
+  metalSynth.volume.value = 5;
 
-  const polySynth = new Tone.PolySynth().chain(chorus,filter, feedbackDelay, tremolo, phaser, pingPong,reverb, Tone.Master);
+  const polySynth = new Tone.PolySynth().chain(chorus, filter, feedbackDelay, tremolo, phaser, pingPong, reverb, Tone.Master);
   // PolySynth.set({ detune: -1200 });
   polySynth.triggerAttackRelease(["C4", "E4", "A4"], 1);
-  polySynth.volume.value=-23;
+  polySynth.volume.value = -23;
 
-  const duoSynth = new Tone.DuoSynth().chain(chorus,filter, feedbackDelay, tremolo, phaser, pingPong,reverb, Tone.Master);
+  const duoSynth = new Tone.DuoSynth().chain(chorus, filter, feedbackDelay, tremolo, phaser, pingPong, reverb, Tone.Master);
   duoSynth.triggerAttackRelease("G3", ".5");
-  duoSynth.volume.value=-26;
+  duoSynth.volume.value = -26;
 
 }
 

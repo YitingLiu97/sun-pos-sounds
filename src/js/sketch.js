@@ -31,6 +31,12 @@ How to convert the audio file into JSON but still play it as sound here?
 
 
 
+ /*******
+  * Questions:
+  * 1. How to call the buffer from external link? 
+  * 
+  */
+
 let sun_altitude, lat, lon;
 let shifter, player;
 let songURL;
@@ -124,11 +130,30 @@ function preload() {
 
 let duration, RLat, RLog, Rlink;
 
-let buffer, buff;
-buffer = new Tone.Buffer(songURL, function () {
-  //the buffer is now available.
-  buff = buffer.get();
-});
+// let buffer, buff;
+// buffer = new Tone.Buffer(songURL, function () {
+//   //the buffer is now available.
+//   buff = buffer.get();
+// });
+
+//example from git: https://github.com/Tonejs/Tone.js/issues/628
+function play() {
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", recordingPath, true);
+	xhr.responseType = 'blob';
+	xhr.onload = function(){
+		var blob = URL.createObjectURL(this.response);
+		console.log('pressed');
+		var player = new Tone.Player();
+		var pitchShift = new Tone.PitchShift({pitch: 2});
+		player.load(blob);
+		pitchShift.toMaster();
+		player.connect(pitchShift);
+		player.autostart = true;
+	};
+	xhr.send();
+}
+
 
 function setup() {
   //manipulate field recordings 
@@ -139,7 +164,7 @@ function setup() {
 
   player = new Tone.Player({
     "onload": Tone.noOp,
-    "url": songURL,
+    "url": recordingPath,
     "autostart": false,
     "loop": true, //set the loop to be true to use loopstart and loopend
     "loopStart": loopStart,
@@ -151,26 +176,11 @@ function setup() {
 
   });
 
+
+
+
   filter = new Tone.Filter(cuoffFreq).toMaster();
   feedbackDelay = new Tone.FeedbackDelay(0.125, 0.5).toMaster();
-
-  // const merge = new Tone.Merge().toMaster();
-  // routing a sine tone in the left channel
-  // player2 = new Tone.Player({
-  //   "url": songURL2,
-  //   "autostart": true,
-  //   "loop": true, //set the loop to be true to use loopstart and loopend
-  //   "loopStart": 0,
-  //   "loopEnd": 100,
-  //   "reverse": false,
-  //   "duration": 10,
-  //   "fadeIn": 0,
-  //   "fadeOut": 0
-
-  // });
-
-  // player2.toMaster();
-
 
   // further dev 
   //use channel instead: https://tonejs.github.io/docs/14.7.58/Channel
@@ -179,28 +189,6 @@ function setup() {
 
   //bandpass filter/ comb filter - resonance 
   // https://tonejs.github.io/docs/14.7.58/FeedbackCombFilter
-
-  // transpose it and then put it in sampler 
-
-
-  // can you have two players in the scene 
-  // left center right - surround cable output 
-  // player.connect(merge, 0, 0).start();
-  // and noise in the right channel
-  // player2.connect(merge, 0, 1).start();
-
-  // mimic the keyboard 
-  // var sampler = new Tone.Sampler({
-  //   "C3" : "path/to/C3.mp3",
-  //   "D#3" : "path/to/Dsharp3.mp3",
-  //   "F#3" : "path/to/Fsharp3.mp3",
-  //   "A3" : "path/to/A3.mp3",
-  // }, function(){
-  //   //sampler will repitch the closest sample
-  //   sampler.triggerAttack("G8")
-  // })
-
-  // player.connect(sampler)
 
 
   pingPong = new Tone.PingPongDelay({
@@ -269,6 +257,7 @@ function draw() {
 
 
   button.mousePressed(play1);
+  // button.mousePressed(play);
 
   //assign individual values to player to update 
   player.loopEnd = loopEnd;

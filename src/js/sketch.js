@@ -31,11 +31,11 @@ How to convert the audio file into JSON but still play it as sound here?
 
 
 
- /*******
-  * Questions:
-  * 1. How to call the buffer from external link? 
-  * 
-  */
+/*******
+ * Questions:
+ * 1. How to call the buffer from external link? 
+ * 
+ */
 
 let sun_altitude, lat, lon;
 let shifter, player;
@@ -46,7 +46,7 @@ let shiftSlider;
 let songRoot = "../../assets/";
 let songs = [songRoot + "alytusbridge.mp3", songRoot + "BranchinMeramecRiver.mp3", songRoot + "bruneuve.mp3", songRoot + "enteringmaindrinkingsuite.mp3", songRoot + "PlaceduGrandHospice.mp3"];
 // let song = "BranchinMeramecRiver.mp3";
-// songURL = songs[2];
+songURL = songs[2];
 // songURL2 = songs[1];
 
 let newLat = 52.5;
@@ -75,10 +75,14 @@ let cutoffFreqSlider;
 
 let fadeInTime = 0,
   fadeOutTime = 0; // change the fade in fade out time based on the sun 
-let path, recordingLink;
+let path, recordingLink,newRecordingLink;
+
+
+const regex = "https://aporee.org/maps/files/";
+
 
 // Access to fetch failed 
-
+let finalaudioPath;
 function preload() {
   //read sun API 
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=e01854cbed884f7d97f31665ef5d352e";
@@ -90,6 +94,7 @@ function preload() {
 
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
   //created my own server 
+
   recordingPath = `https://proxy-server-yt.herokuapp.com/${Audio_URL}`;
 
   const myHeaders = new Headers();
@@ -120,13 +125,21 @@ function preload() {
     }).then(response => response.json())
     .then(myBlob => {
       console.log(myBlob)
-      recordingLink = myBlob[0].url;
+      recordingLink =(myBlob[0].url);
+      // var a = document.createElement('a');
+      // a.href=recordingLink;
+      // a.download="hello.mp3";
+      // a.click();
+      //get the first link from the array of the recordingPaths
+      finalaudioPath = recordingLink.replace(regex, 'https://sunandus.netlify.app/audioDownloads/');
       console.log("recordingLink", recordingLink);
-      return recordingLink;
+      console.log("finalaudioPath", finalaudioPath);
 
+      return recordingLink;
     });
 
 }
+
 
 let duration, RLat, RLog, Rlink;
 
@@ -138,46 +151,54 @@ let duration, RLat, RLog, Rlink;
 
 //example from git: https://github.com/Tonejs/Tone.js/issues/628
 function play() {
-	var xhr = new XMLHttpRequest();
-	xhr.open("GET", recordingPath, true);
-	xhr.responseType = 'blob';
-	xhr.onload = function(){
-		var blob = URL.createObjectURL(this.response);
-		console.log('pressed');
-		var player = new Tone.Player();
-		var pitchShift = new Tone.PitchShift({pitch: 2});
-		player.load(blob);
-		pitchShift.toMaster();
-		player.connect(pitchShift);
-		player.autostart = true;
-	};
-	xhr.send();
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", songURL, true);
+  xhr.responseType = 'blob';
+  xhr.onload = function () {
+    var blob = URL.createObjectURL(this.response);
+    console.log('pressed');
+    var player3 = new Tone.Player();
+    var pitchShift = new Tone.PitchShift({
+      pitch: 2
+    });
+    player3.load(blob);
+    pitchShift.toMaster();
+    player3.connect(pitchShift);
+    player3.autostart = true;
+  };
+  xhr.send();
 }
+
 
 
 function setup() {
   //manipulate field recordings 
 
   songLength = new Tone.Time().valueOf();
-
   shifter = new Tone.PitchShift().toMaster();
 
-  player = new Tone.Player({
-    "onload": Tone.noOp,
-    "url": recordingPath,
-    "autostart": false,
-    "loop": true, //set the loop to be true to use loopstart and loopend
-    "loopStart": loopStart,
-    "loopEnd": loopEnd,
-    "reverse": false,
-    "duration": 1,
-    "fadeIn": fadeInTime,
-    "fadeOut": fadeOutTime
+  // player.load(songURL2);
+  // player = new Tone.Player({
+  //   "onload": Tone.noOp,
+  //   "url": "https://tonejs.github.io/audio/berklee/gurgling_theremin_1.mp3",
+  //   // "url":songURL2,
+  //   "autostart": true,
+  //   "loop": true, //set the loop to be true to use loopstart and loopend
+  //   "loopStart": loopStart,
+  //   "loopEnd": loopEnd,
+  //   "reverse": false,
+  //   "duration": 1,
+  //   "fadeIn": fadeInTime,
+  //   "fadeOut": fadeOutTime
 
+  // });
+  var buffer = new Tone.Buffer(finalaudioPath, function(){
+    //the buffer is now available.
+    console.log("buffer", buffer);
+ 
+    // var buff = buffer.get();
   });
-
-
-
+   
 
   filter = new Tone.Filter(cuoffFreq).toMaster();
   feedbackDelay = new Tone.FeedbackDelay(0.125, 0.5).toMaster();
@@ -221,8 +242,6 @@ function setup() {
   button = createButton("Play Sound");
   button.position(width / 2 - 50, height / 2);
 
-
-
   //should replace the end range as the length of the audio 
   loopStartSlider = createSlider(0, 10000, 1, 0);
   loopStartSlider.style("width", "200px");
@@ -245,6 +264,11 @@ function setup() {
  */
 function draw() {
 
+
+  // if (player.loaded == 1) {
+  //   console.log("it is loaded");
+  // }
+
   shifter.pitch = shiftSlider.value();
   loopStart = loopStartSlider.value();
   loopEnd = loopEndSlider.value();
@@ -255,8 +279,8 @@ function draw() {
   //to autostart 
   // player.autostart=true;
 
-
-  button.mousePressed(play1);
+  // play1();
+  // button.mousePressed(play1);
   // button.mousePressed(play);
 
   //assign individual values to player to update 

@@ -13,15 +13,6 @@ How to convert the audio file into JSON but still play it as sound here?
 4. 
 *******/
 
-//getting the api from aporee 
-// let Audio_API = process.env.Aduio_API;
-// let audioLat, audioLog;
-
-// let Audio_URL = Audio_API + `lat=${audioLat}&lng=${audioLog}`;
-
-//test to see if the audio url works with tone js 
-
-
 /***
  * sun distance decides the length of the music
  * ISS lon and lat decides + sun altitude decides the range of the music to play 
@@ -29,38 +20,22 @@ How to convert the audio file into JSON but still play it as sound here?
  * chop them up based on the changing variables 
  */
 
-
-
-/*******
- * Questions:
- * 1. How to call the buffer from external link? 
- * 
- */
-
 let sun_altitude, lat, lon;
 let shifter, player;
 let songURL;
 let button;
 let shiftSlider;
-// let wetMix;
-let songRoot = "../../assets/";
-let songs = [songRoot + "alytusbridge.mp3", songRoot + "BranchinMeramecRiver.mp3", songRoot + "bruneuve.mp3", songRoot + "enteringmaindrinkingsuite.mp3", songRoot + "PlaceduGrandHospice.mp3"];
-// let song = "BranchinMeramecRiver.mp3";
-songURL = songs[2];
-// songURL2 = songs[1];
-
+//set default lat and lon for Aporee API
 let newLat = 52.5;
 let newLon = 13.5;
-
+let bgCanvas;
 let Audio_URL;
-
 // songURL = "https://cors-anywhere.herokuapp.com/https://aporee.org/maps/files/9EdDamazintheedrinken1525.mp3"
 let songLength;
 
 let distortionEffect = 0.2,
-  distortionSlider; //not too obvious - has to connect to toMaster();
+  distortionSlider;
 let pingPong, pingPongSlider;
-
 let filter, feedbackDelay;
 //loop start and end depending on the sun location 
 //sun's distance to the location determines the effect 
@@ -69,33 +44,31 @@ let loopStart = 0,
   loopEnd = 0;
 let loopStartSlider, loopEndSlider;
 
-
 let cuoffFreq = 400;
 let cutoffFreqSlider;
 
-let fadeInTime = 0,
-  fadeOutTime = 0; // change the fade in fade out time based on the sun 
-let path, recordingLink,newRecordingLink;
+let fadeInTime = 0.5,
+  fadeOutTime = 0.5; // change the fade in fade out time based on the sun 
+let path, recordingLink, newRecordingLink;
+let rectitle;
+let artist;
+let timeZone;
+let recdate;
+let infoString;
+let duration, RLat, RLog, Rlink;
+const proxy = 'https://proxy-server-yt.herokuapp.com/';
 
-
-const regex = "https://aporee.org/maps/files/";
-
-
-// Access to fetch failed 
-let finalaudioPath;
 function preload() {
   //read sun API 
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=e01854cbed884f7d97f31665ef5d352e";
   httpDo(sunPath, 'GET', readResponse);
-
   //read ISS API 
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
   httpDo(issPath, 'GET', readResponseISS);
 
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
-  //created my own server 
 
-  recordingPath = `https://proxy-server-yt.herokuapp.com/${Audio_URL}`;
+  recordingPath = proxy + Audio_URL;
 
   const myHeaders = new Headers();
 
@@ -105,7 +78,11 @@ function preload() {
     mode: 'no-cors',
     cache: 'default'
   });
+  fetchLink();
+}
 
+
+function fetchLink() {
   //try using express to test the speed 
   fetch(recordingPath, {
       "headers": {
@@ -124,114 +101,66 @@ function preload() {
       "credentials": "omit"
     }).then(response => response.json())
     .then(myBlob => {
-      console.log(myBlob)
-      recordingLink =(myBlob[0].url);
-      // var a = document.createElement('a');
-      // a.href=recordingLink;
-      // a.download="hello.mp3";
-      // a.click();
-      //get the first link from the array of the recordingPaths
-      finalaudioPath = recordingLink.replace(regex, 'https://sunandus.netlify.app/audioDownloads/');
-      console.log("recordingLink", recordingLink);
-      console.log("finalaudioPath", finalaudioPath);
+      // console.log(myBlob)
+      recordingLink = myBlob[0].url;
 
+     rectitle=myBlob[0].rectitle;
+      artist=myBlob[0].artist;
+      timeZone=myBlob[0].timezone;
+     recdate=myBlob[0].recdate;
+      // console.log("recordingLink", recordingLink);
       return recordingLink;
     });
 
 }
 
 
-let duration, RLat, RLog, Rlink;
-
-// let buffer, buff;
-// buffer = new Tone.Buffer(songURL, function () {
-//   //the buffer is now available.
-//   buff = buffer.get();
-// });
-
-//example from git: https://github.com/Tonejs/Tone.js/issues/628
-function play() {
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", songURL, true);
-  xhr.responseType = 'blob';
-  xhr.onload = function () {
-    var blob = URL.createObjectURL(this.response);
-    console.log('pressed');
-    var player3 = new Tone.Player();
-    var pitchShift = new Tone.PitchShift({
-      pitch: 2
-    });
-    player3.load(blob);
-    pitchShift.toMaster();
-    player3.connect(pitchShift);
-    player3.autostart = true;
-  };
-  xhr.send();
-}
-
-
+let factor = 3,
+  total = 10,
+  zoff = 0;
 
 function setup() {
-  //manipulate field recordings 
+  r = width / 2 - 200;
 
-  songLength = new Tone.Time().valueOf();
+  bgCanvas = createCanvas(windowWidth, windowHeight);
+  bgCanvas.id = "bgCanvas";
+  bgCanvas.parent("sketchDiv");
+
+  //manipulate field recordings 
   shifter = new Tone.PitchShift().toMaster();
 
-  // player.load(songURL2);
-  // player = new Tone.Player({
-  //   "onload": Tone.noOp,
-  //   "url": "https://tonejs.github.io/audio/berklee/gurgling_theremin_1.mp3",
-  //   // "url":songURL2,
-  //   "autostart": true,
-  //   "loop": true, //set the loop to be true to use loopstart and loopend
-  //   "loopStart": loopStart,
-  //   "loopEnd": loopEnd,
-  //   "reverse": false,
-  //   "duration": 1,
-  //   "fadeIn": fadeInTime,
-  //   "fadeOut": fadeOutTime
+  player = new Tone.Player({
+    "onload": Tone.noOp,
+    "autostart": true,
+    "loop": true, //set the loop to be true to use loopstart and loopend
+    "loopStart": loopStart,
+    "loopEnd": loopEnd,
+    "reverse": false,
+    "duration": 2, //changed by the sun element? 
+    "fadeIn": fadeInTime,
+    "fadeOut": fadeOutTime
 
-  // });
-  var buffer = new Tone.Buffer(finalaudioPath, function(){
-    //the buffer is now available.
-    console.log("buffer", buffer);
- 
-    // var buff = buffer.get();
   });
-   
+
 
   filter = new Tone.Filter(cuoffFreq).toMaster();
   feedbackDelay = new Tone.FeedbackDelay(0.125, 0.5).toMaster();
-
-  // further dev 
-  //use channel instead: https://tonejs.github.io/docs/14.7.58/Channel
-  //if sound shitty, do the clipping 
-
-
-  //bandpass filter/ comb filter - resonance 
-  // https://tonejs.github.io/docs/14.7.58/FeedbackCombFilter
-
 
   pingPong = new Tone.PingPongDelay({
     "delayTime": 0.25,
     "maxDelayTime": 1
   }).toMaster();
-  // player.connect(pingPong);
-
-  // player.connect(grainPlayer);
 
   distortion = new Tone.Distortion({
     "distortion": distortionEffect,
   }).toMaster();
 
-
   //order of the effect matters 
   player.chain(shifter, distortion, filter, feedbackDelay, Tone.Master);
 
-  let bgCnavas = createCanvas(windowWidth / 2, windowHeight / 2);
-  // let bgCnavas =  createCanvas(2000, 2000);
+  // let bgCanvas =  createCanvas(2000, 2000);
 
-  // bgCnavas.id("bg");
+  // bgCanvas.id("bg");
   // document.getElementById("bg").style.zIndex="1";
 
   shiftSlider = createSlider(-12, 12, 2, 1);
@@ -242,12 +171,13 @@ function setup() {
   button = createButton("Play Sound");
   button.position(width / 2 - 50, height / 2);
 
+  button.parent("ui");
   //should replace the end range as the length of the audio 
-  loopStartSlider = createSlider(0, 10000, 1, 0);
+  loopStartSlider = createSlider(0, 10000, 20, 1);
   loopStartSlider.style("width", "200px");
   loopStartSlider.position(width / 2 - 100, height / 2 + 200);
 
-  loopEndSlider = createSlider(0, 10000, 1, 0);
+  loopEndSlider = createSlider(0, 10000, 5000, 1);
   loopEndSlider.style("width", "200px");
   loopEndSlider.position(width / 2 - 100, height / 2 + 270);
 
@@ -255,33 +185,45 @@ function setup() {
   distortionSlider.style("width", "200px");
   distortionSlider.position(width / 2 - 100, height / 2 + 340);
 
-  cutoffFreqSlider = createSlider(0, 10000, 100, 100);
+  cutoffFreqSlider = createSlider(0, 10000, 500, 100);
   cutoffFreqSlider.style("width", "200px");
   cutoffFreqSlider.position(width / 2 - 100, height / 2 + 420);
+
+  newLat = round(random(lat, lat + 20),2);
+  newLon = round(random(lon, lon + 20),2);
+  //constantly updates the link and update it in the player 
+  Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
+  fetchLink();
+  let url = proxy.concat(recordingLink);
+  // console.log("url", url)
+  player.load(url);
 
 }
 /*Avoiding putting any sound triggering functions in draw() for this example
  */
 function draw() {
 
-
-  // if (player.loaded == 1) {
-  //   console.log("it is loaded");
-  // }
-
   shifter.pitch = shiftSlider.value();
   loopStart = loopStartSlider.value();
   loopEnd = loopEndSlider.value();
   cutoffFreq = cutoffFreqSlider.value();
   distortionEffect = distortionSlider.value();
-  background(143, 204, 124);
+  background("black");
 
+  push();
+  translate(width / 2, height / 2);
+  factor += 0.015;
+
+  for (let i = 0; i < total; i++) {
+    const a = getVector(i, total);
+    const b = getVector(i * factor, total);
+    wobble(a.x, a.y, b.x, b.y);
+  }
+  pop();
   //to autostart 
-  // player.autostart=true;
-
-  // play1();
+  player.autostart = true;
+  // console.log(player.volume.value,"volume")
   // button.mousePressed(play1);
-  // button.mousePressed(play);
 
   //assign individual values to player to update 
   player.loopEnd = loopEnd;
@@ -292,11 +234,10 @@ function draw() {
   // textAlign(CENTER);
   // text(int(wetMix.value() * 100) + "% effected sound", wetMix.x + 100, wetMix.y - 10);
 
+  fill("white");
   text("Shift value parameter: " + shiftSlider.value() + " half steps", shiftSlider.x + 100, shiftSlider.y - 10);
 
   text(int(loopStartSlider.value()) + "loopStartSlider", loopStartSlider.x + 100, loopStartSlider.y - 10);
-
-
   text(int(loopEndSlider.value()) + "loopEndSlider", loopEndSlider.x + 100, loopEndSlider.y - 15);
 
 
@@ -305,22 +246,33 @@ function draw() {
   text(int(cutoffFreqSlider.value()) + "cutoffFreq", cutoffFreqSlider.x + 100, cutoffFreqSlider.y - 10);
 
 
+  info();
 }
+//update the lat and draw every 5 seconds 
+window.setInterval(() => {
+  newLat = float(random(lat, lat + 20));
+  newLon = float(random(lon, lon + 20));
+  //constantly updates the link and update it in the player 
+  Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
+  fetchLink();
+  let url = proxy.concat(recordingLink);
+  // console.log("url", url)
+  player.load(url);
+  //read response intervally 
+  httpDo(issPath, 'GET', readResponseISS);
 
-function play1() {
-  player.start();
-  player2.start();
-}
+}, 2000);
 
 
 function readResponseISS(e) {
   let ISSdata = JSON.parse(e);
-  lat = ISSdata.latitude;
-  lon = ISSdata.longitude;
-  console.log("lat", lat);
+  lat = ISSdata.latitude.toFixed(2);
+  lon = ISSdata.longitude.toFixed(2);
+  console.log("lat",lat);
   console.log("lon", lon);
 
 }
+
 
 function readResponse(response) {
   let data = JSON.parse(response);
@@ -329,19 +281,63 @@ function readResponse(response) {
 
 }
 
-/************
-function crossFade(sound1,sound2){
-  //get the url from sound1 and sound2 
-//create crossfade effect between two clips 
 
-const crossFade = new Tone.CrossFade().toMaster();
-let player1 = new Tone.player(sound1).connect(crossFade.a).start();
-let player2  = new Tone.player(sound2).connect(crossFade.b).start();
-crossFade.fade.value = 0.5;
+
+//get webcam data to manipulate some thing - simple posenet - add graphics later 
+
+// would be a symphony of sun and us - sun is always playing in the background; human movement geneerate something else
+
+
+function info(){
+  infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
+//  text(infoString,0,height,width,height);
+ text(infoString, 50, height-50, width-50, height); }
+
+// simple visuals
+
+function getVector(index, total) {
+  const angle = map(index % total, 0, total, 0, TWO_PI);
+  const v = p5.Vector.fromAngle(angle + PI);
+  v.mult(r);
+  return v;
 }
- */
 
+function wobble(x, y, a, b) {
 
-//getting the kinect data and people also manipulate something similiar in the clip 
+  distortionLevel = map(distortionEffect, 0, 1, 1, 20);
+  total = map(shiftSlider.value(), -12, 12, 10, 150);
 
-// would be a symphone of sun and us - sun is always playing in the background; human movement geneerate something else
+  loopRange = loopEnd-loopStart;
+  loopLevel = map(loopRange, 0,loopEnd+loopStart,1,10);
+  cutoffLevel = map(cutoffFreq,0,10000,1,5);
+
+  zoff += 0.5;
+  if (zoff > 2) {
+    zoff = 0;
+  }
+
+  x += random(-2 * zoff, 2 * zoff);
+  y += random(-1 * zoff, 1 * zoff);
+  a += random(-2 * zoff, 2 * zoff);
+  b += random(-5 * zoff, 5 * zoff);
+
+  // let col; //create gradient color 
+
+  stroke("white");
+  strokeWeight(distortionEffect*zoff);
+  noFill();
+  line(x*loopLevel, y*loopLevel, a, b);
+  line(x * r / width/b, y * r / height, a, b);
+
+  noStroke();
+  fill("white");
+  ellipse(a * total * 2, b * distortionLevel * 2,y / total);
+  rect(a * total /2, b * distortionLevel * 2,y/total ,x/distortionLevel);
+
+  stroke("white");
+  strokeWeight(cutoffLevel/zoff/10);
+  noFill();
+  ellipse(x * cutoffLevel, y *  cutoffLevel/total,  b/cutoffLevel*zoff );
+  // ellipse(cutoffLevel, x /total, a % b ,total*zoff/PI);
+
+}

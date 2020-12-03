@@ -3,3 +3,16 @@ html, body {
   padding: 0;
 }
 
+#sketchDiv{
+  width: 100vw;
+  height: 100vh;
+  /* background-color: red; */
+}
+
+#info>div{
+  display: flex;
+  flex-flow: row nowrap;
+  /* justify-content: space-evenly;
+  align-items: center;
+  align-content: baseline; */
+}

@@ -20,7 +20,7 @@ How to convert the audio file into JSON but still play it as sound here?
  * chop them up based on the changing variables 
  */
 
-let sun_altitude, lat, lon;
+let sun_altitude, lat, lon;//sun altitude range -90 - 90 (from night time to day time) 
 let shifter, player;
 let songURL;
 let button;
@@ -58,6 +58,13 @@ let infoString;
 let duration, RLat, RLog, Rlink;
 const proxy = 'https://proxy-server-yt.herokuapp.com/';
 
+
+let video;
+let poseNet;
+let poses = [];
+
+
+
 function preload() {
   //read sun API 
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=e01854cbed884f7d97f31665ef5d352e";
@@ -80,7 +87,6 @@ function preload() {
   });
   fetchLink();
 }
-
 
 function fetchLink() {
   //try using express to test the speed 
@@ -114,19 +120,34 @@ function fetchLink() {
 
 }
 
-
 let factor = 3,
   total = 10,
   zoff = 0;
 
-function setup() {
-  r = width / 2 - 200;
 
+let sunToDur;
+
+function setup() {
+ 
+  r = width / 2 - 200;
   bgCanvas = createCanvas(windowWidth, windowHeight);
   bgCanvas.id = "bgCanvas";
   bgCanvas.parent("sketchDiv");
 
-  //manipulate field recordings 
+  video = createCapture(VIDEO);
+  video.size(width, height);
+
+  //single detection for now 
+  poseNet = ml5.poseNet(video, modelReady);
+
+  poseNet.on('pose', function(results) {
+    poses = results;
+  });
+  // Hide the video element, and just show the canvas
+  video.hide();
+
+
+//manipulate field recordings 
   shifter = new Tone.PitchShift().toMaster();
 
   player = new Tone.Player({
@@ -136,7 +157,7 @@ function setup() {
     "loopStart": loopStart,
     "loopEnd": loopEnd,
     "reverse": false,
-    "duration": 2, //changed by the sun element? 
+    "duration": 2, //changed by the sun altitude in draw; 
     "fadeIn": fadeInTime,
     "fadeOut": fadeOutTime
 
@@ -158,15 +179,10 @@ function setup() {
   //order of the effect matters 
   player.chain(shifter, distortion, filter, feedbackDelay, Tone.Master);
 
-  // let bgCanvas =  createCanvas(2000, 2000);
-
-  // bgCanvas.id("bg");
-  // document.getElementById("bg").style.zIndex="1";
-
+  //UI
   shiftSlider = createSlider(-12, 12, 2, 1);
   shiftSlider.style("width", "200px");
   shiftSlider.position(width / 2 - 100, height / 2 + 150);
-
 
   button = createButton("Play Sound");
   button.position(width / 2 - 50, height / 2);
@@ -195,7 +211,6 @@ function setup() {
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
   fetchLink();
   let url = proxy.concat(recordingLink);
-  // console.log("url", url)
   player.load(url);
 
 }
@@ -203,52 +218,50 @@ function setup() {
  */
 function draw() {
 
+  image(video, 0, 0, width, height);
+  drawKeypoints();
+
   shifter.pitch = shiftSlider.value();
   loopStart = loopStartSlider.value();
   loopEnd = loopEndSlider.value();
   cutoffFreq = cutoffFreqSlider.value();
   distortionEffect = distortionSlider.value();
-  background("black");
+  // background("black",0.2);
 
   push();
   translate(width / 2, height / 2);
   factor += 0.015;
-
   for (let i = 0; i < total; i++) {
     const a = getVector(i, total);
     const b = getVector(i * factor, total);
     wobble(a.x, a.y, b.x, b.y);
+
   }
   pop();
+  
   //to autostart 
   player.autostart = true;
-  // console.log(player.volume.value,"volume")
-  // button.mousePressed(play1);
+  //map the sun altitude to set the duration time 
+  sunToDur=map(sun_altitude,-90,90,1,20);
 
   //assign individual values to player to update 
   player.loopEnd = loopEnd;
-  // player.loopStart=loopStart;
   distortion.distortion = distortionEffect;
-  // console.log("length of the audio:", songLength); // not accurate 
   filter.cutoff = cuoffFreq;
-  // textAlign(CENTER);
-  // text(int(wetMix.value() * 100) + "% effected sound", wetMix.x + 100, wetMix.y - 10);
 
+  //when requests too much, it does not work 
+  player.duration=sunToDur;
+  console.log("suntoDur",sunToDur)
   fill("white");
   text("Shift value parameter: " + shiftSlider.value() + " half steps", shiftSlider.x + 100, shiftSlider.y - 10);
-
   text(int(loopStartSlider.value()) + "loopStartSlider", loopStartSlider.x + 100, loopStartSlider.y - 10);
   text(int(loopEndSlider.value()) + "loopEndSlider", loopEndSlider.x + 100, loopEndSlider.y - 15);
-
-
   text(Number(distortionSlider.value().toFixed(2)) + "distortionSlider", distortionSlider.x + 100, distortionSlider.y - 10);
-
   text(int(cutoffFreqSlider.value()) + "cutoffFreq", cutoffFreqSlider.x + 100, cutoffFreqSlider.y - 10);
-
 
   info();
 }
-//update the lat and draw every 5 seconds 
+//update the lat and draw every 20 seconds 
 window.setInterval(() => {
   newLat = float(random(lat, lat + 20));
   newLon = float(random(lon, lon + 20));
@@ -256,12 +269,13 @@ window.setInterval(() => {
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
   fetchLink();
   let url = proxy.concat(recordingLink);
-  // console.log("url", url)
   player.load(url);
   //read response intervally 
   httpDo(issPath, 'GET', readResponseISS);
+  httpDo(sunPath, 'GET', readResponse);
 
-}, 2000);
+
+}, 20000);
 
 
 function readResponseISS(e) {
@@ -282,17 +296,21 @@ function readResponse(response) {
 }
 
 
-
 //get webcam data to manipulate some thing - simple posenet - add graphics later 
 
 // would be a symphony of sun and us - sun is always playing in the background; human movement geneerate something else
 
 
 function info(){
-  infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
-//  text(infoString,0,height,width,height);
- text(infoString, 50, height-50, width-50, height); }
+  instructionWebCam=`With webcam, you can join in the symphony. Try to move your head to change xxx, move around your hands to change xxx`;
+  text(instructionWebCam, 50, height-150, width-50, height-100); 
 
+  instructionSun=`Enjoy the compilation of field recordings by the ISS position and altitude of the sun.`
+  text(instructionSun, 50, height-100, width-50, height-50); 
+
+  infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
+ text(infoString, 50, height-50, width-50, height); 
+}
 // simple visuals
 
 function getVector(index, total) {
@@ -304,12 +322,22 @@ function getVector(index, total) {
 
 function wobble(x, y, a, b) {
 
+
+  //with slider 
   distortionLevel = map(distortionEffect, 0, 1, 1, 20);
   total = map(shiftSlider.value(), -12, 12, 10, 150);
-
   loopRange = loopEnd-loopStart;
   loopLevel = map(loopRange, 0,loopEnd+loopStart,1,10);
   cutoffLevel = map(cutoffFreq,0,10000,1,5);
+
+  //with posenet 
+  // distortionLevel = map(noseX, 0, width, 1,20);
+  // total = map(noseY, 0, height, 10, 150);
+  // loopRange = loopEnd-loopStart;
+  // handRange = abs(leftWristX - rightWristX);
+  // loopLevel = map(handRange, 0,width,1,10);
+  // cutoffLevel = map(cutoffFreq,0,10000,1,5);
+
 
   zoff += 0.5;
   if (zoff > 2) {
@@ -338,6 +366,58 @@ function wobble(x, y, a, b) {
   strokeWeight(cutoffLevel/zoff/10);
   noFill();
   ellipse(x * cutoffLevel, y *  cutoffLevel/total,  b/cutoffLevel*zoff );
-  // ellipse(cutoffLevel, x /total, a % b ,total*zoff/PI);
 
 }
+
+let noseX,noseY, rightWristX,rightWristY, leftWristX,leftWristY,rightKneeX,rightKneeY;
+
+function modelReady() {
+  console.log('Model Loaded');
+}
+
+function drawKeypoints()  {
+  for (let i = 0; i < poses.length; i++) {
+    let pose = poses[i].pose;
+    for (let j = 0; j < pose.keypoints.length; j++) {
+      let keypoint = pose.keypoints[j];
+
+      if (keypoint.score > 0.8) {
+        if(keypoint.part='nose'){
+          noseX=keypoint.position.x;
+          noseY=keypoint.position.y;
+        }
+        if(keypoint.part='leftWrist'){
+          leftWristX=keypoint.position.x;
+          leftWristY=keypoint.position.y;
+          // console.log(leftWristX)
+        }
+        if(keypoint.part='rightWrist'){
+          rightWristX=keypoint.position.x;
+          rightWristY=keypoint.position.y;
+        }
+
+        // if(keypoint.part='rightKnee'){
+        //   rightKneeX=keypoint.position.x;
+        //   rightKneeY=keypoint.position.y;
+        //   // console.log(leftWristX)
+        // }
+        // if(keypoint.part='leftKnee'){
+        //   leftKneeX=keypoint.position.x;
+        //   leftKneeY=keypoint.position.y;
+        //   console.log("leftKneeX",leftKneeX)
+        // }
+         fill(255, 0, 0);
+        noStroke();
+        ellipse(keypoint.position.x, keypoint.position.y, 10, 10);
+      }
+    }
+  }
+
+}
+
+//head moves the center of the visual + determines the shift value 
+
+//left starts loop Statr 
+//right hand starts loop End
+
+//map distance between left and right

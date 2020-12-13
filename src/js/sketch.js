@@ -69,6 +69,7 @@ let factor = 3,
   total = 10,
   zoff = 0;
 let sunToDur;
+let state = "sun";
 
 function preload() {
   //read sun API 
@@ -112,9 +113,7 @@ function fetchLink() {
       "credentials": "omit"
     }).then(response => response.json())
     .then(myBlob => {
-      // console.log(myBlob)
       recordingLink = myBlob[0].url;
-
       rectitle = myBlob[0].rectitle;
       artist = myBlob[0].artist;
       timeZone = myBlob[0].timezone;
@@ -146,7 +145,7 @@ function setup() {
     poses = results;
   });
   // Hide the video element, and just show the canvas
-  video.hide();
+  // video.hide();
 
   //manipulate field recordings 
   shifter = new Tone.PitchShift().toMaster();
@@ -192,14 +191,15 @@ function setup() {
   //UI
 
   UI();
-  newLat = round(random(lat, lat + 20), 2);
-  newLon = round(random(lon, lon + 20), 2);
-  //constantly updates the link and update it in the player 
-  Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
-  fetchLink();
-  let url = proxy.concat(recordingLink);
-  player.load(url);
+  // newLat = round(random(lat, lat + 20), 2);
+  // newLon = round(random(lon, lon + 20), 2);
+  // //constantly updates the link and update it in the player 
+  // Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
+  // fetchLink();
+  // let url = proxy.concat(recordingLink);
+  // player.load(url);
 
+  getAllData();
 }
 
 function UI() {
@@ -226,16 +226,17 @@ function UI() {
 }
 
 
-let state = "sun";
 
 function sunIsPressed() {
   state = "sun";
   console.log("sun is pressed");
+  return state;
 }
 
 function usIsPressed() {
   state = "us";
   console.log("us is pressed");
+  return state;
 }
 
 /*Avoiding putting any sound triggering functions in draw() for this example
@@ -250,16 +251,17 @@ function draw() {
     shiftSlider.hide();
     distortionSlider.hide();
     cutoffFreqSlider.hide();
-
-    image(video, 0, 0, width / 10, height / 10); //video on canvas, position, dimensions
+    image(video, 0, 0,width/10, height / 10); //video on canvas, position, dimensions
+    
     drawKeypoints();
     noStroke();
+
     push();
-    fill(255, 0, 0);
+    // fill(255, 0, 0);
     ellipse(noseX, noseY, 10, 10);
 
-    
-    fill(0, 255, 0);
+    //color of the
+    fill(249, 215, 28);
     ellipse(leftWristX, leftWristY, 10, 10);
     ellipse(rightWristX, rightWristY, 10, 10);
     pop();
@@ -277,13 +279,11 @@ function draw() {
 
   if (state == "sun") {
 
-
     loopStartSlider.show();
     loopEndSlider.show();
     shiftSlider.show();
     distortionSlider.show();
     cutoffFreqSlider.show();
-
 
     shifter.pitch = shiftSlider.value();
     loopStart = loopStartSlider.value();
@@ -335,6 +335,7 @@ function draw() {
 //update the lat and draw every 20 seconds 
 window.setInterval(() => {
   getAllData();
+  
 }, 2000);
 
 

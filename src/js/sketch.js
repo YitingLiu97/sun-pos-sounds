@@ -327,8 +327,6 @@ function draw() {
   player.loopEnd = loopEnd;
   distortion.distortion = distortionEffect;
   filter.cutoff = cuoffFreq;
-
-
   info();
 }
 
@@ -415,8 +413,9 @@ function info() {
   }
 
 }
-// simple visuals
 
+
+// simple visuals
 function getVector(index, total) {
   const angle = map(index % total, 0, total, 0, TWO_PI);
   const v = p5.Vector.fromAngle(angle + PI);
@@ -525,10 +524,3 @@ function drawKeypoints() {
   }
 
 }
-
-//head moves the center of the visual + determines the shift value 
-
-//left starts loop Statr 
-//right hand starts loop End
-
-//map distance between left and right

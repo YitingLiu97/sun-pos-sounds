@@ -20,10 +20,10 @@ How to convert the audio file into JSON but still play it as sound here?
  * chop them up based on the changing variables 
  */
 
-let sun_altitude, lat, lon;//sun altitude range -90 - 90 (from night time to day time) 
+let sun_altitude, lat, lon; //sun altitude range -90 - 90 (from night time to day time) 
 let shifter, player;
 let songURL;
-let button;
+let buttonSun, buttonUs;
 let shiftSlider;
 //set default lat and lon for Aporee API
 let newLat = 52.5;
@@ -63,7 +63,12 @@ let video;
 let poseNet;
 let poses = [];
 
+let noseX, noseY, rightWristX, rightWristY, leftWristX, leftWristY, rightKneeX, rightKneeY;
 
+let factor = 3,
+  total = 10,
+  zoff = 0;
+let sunToDur;
 
 function preload() {
   //read sun API 
@@ -110,25 +115,19 @@ function fetchLink() {
       // console.log(myBlob)
       recordingLink = myBlob[0].url;
 
-     rectitle=myBlob[0].rectitle;
-      artist=myBlob[0].artist;
-      timeZone=myBlob[0].timezone;
-     recdate=myBlob[0].recdate;
+      rectitle = myBlob[0].rectitle;
+      artist = myBlob[0].artist;
+      timeZone = myBlob[0].timezone;
+      recdate = myBlob[0].recdate;
       // console.log("recordingLink", recordingLink);
       return recordingLink;
     });
 
 }
 
-let factor = 3,
-  total = 10,
-  zoff = 0;
-
-
-let sunToDur;
 
 function setup() {
- 
+
   r = width / 2 - 200;
   bgCanvas = createCanvas(windowWidth, windowHeight);
   bgCanvas.id = "bgCanvas";
@@ -138,16 +137,18 @@ function setup() {
   video.size(width, height);
 
   //single detection for now 
-  poseNet = ml5.poseNet(video, modelReady);
+  // poseNet = ml5.poseNet(video, {flipHorizontal:true},modelReady);
+  poseNet = ml5.poseNet(video, {
+    flipHorizontal: true
+  }, modelReady);
 
-  poseNet.on('pose', function(results) {
+  poseNet.on('pose', function (results) {
     poses = results;
   });
   // Hide the video element, and just show the canvas
   video.hide();
 
-
-//manipulate field recordings 
+  //manipulate field recordings 
   shifter = new Tone.PitchShift().toMaster();
 
   player = new Tone.Player({
@@ -179,16 +180,34 @@ function setup() {
   //order of the effect matters 
   player.chain(shifter, distortion, filter, feedbackDelay, Tone.Master);
 
+  buttonSun = createButton("Sun");
+  buttonSun.position(width / 2 - 60 - buttonSun.width / 2, height / 2);
+
+  buttonUs = createButton("US");
+  buttonUs.position(width / 2 + 60 - buttonUs.width / 2, height / 2);
+
+  buttonSun.mousePressed(sunIsPressed);
+  buttonUs.mousePressed(usIsPressed);
+
   //UI
+
+  UI();
+  newLat = round(random(lat, lat + 20), 2);
+  newLon = round(random(lon, lon + 20), 2);
+  //constantly updates the link and update it in the player 
+  Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
+  fetchLink();
+  let url = proxy.concat(recordingLink);
+  player.load(url);
+
+}
+
+function UI() {
+  fill(255);
   shiftSlider = createSlider(-12, 12, 2, 1);
   shiftSlider.style("width", "200px");
   shiftSlider.position(width / 2 - 100, height / 2 + 150);
 
-  button = createButton("Play Sound");
-  button.position(width / 2 - 50, height / 2);
-
-  button.parent("ui");
-  //should replace the end range as the length of the audio 
   loopStartSlider = createSlider(0, 10000, 20, 1);
   loopStartSlider.style("width", "200px");
   loopStartSlider.position(width / 2 - 100, height / 2 + 200);
@@ -204,29 +223,86 @@ function setup() {
   cutoffFreqSlider = createSlider(0, 10000, 500, 100);
   cutoffFreqSlider.style("width", "200px");
   cutoffFreqSlider.position(width / 2 - 100, height / 2 + 420);
-
-  newLat = round(random(lat, lat + 20),2);
-  newLon = round(random(lon, lon + 20),2);
-  //constantly updates the link and update it in the player 
-  Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
-  fetchLink();
-  let url = proxy.concat(recordingLink);
-  player.load(url);
-
 }
+
+
+let state = "sun";
+
+function sunIsPressed() {
+  state = "sun";
+  console.log("sun is pressed");
+}
+
+function usIsPressed() {
+  state = "us";
+  console.log("us is pressed");
+}
+
 /*Avoiding putting any sound triggering functions in draw() for this example
  */
 function draw() {
 
-  image(video, 0, 0, width, height);
-  drawKeypoints();
+  background(0);
+  // if choose webcam 
+  if (state == "us") {
+    loopStartSlider.hide();
+    loopEndSlider.hide();
+    shiftSlider.hide();
+    distortionSlider.hide();
+    cutoffFreqSlider.hide();
 
-  shifter.pitch = shiftSlider.value();
-  loopStart = loopStartSlider.value();
-  loopEnd = loopEndSlider.value();
-  cutoffFreq = cutoffFreqSlider.value();
-  distortionEffect = distortionSlider.value();
-  // background("black",0.2);
+    image(video, 0, 0, width / 10, height / 10); //video on canvas, position, dimensions
+    drawKeypoints();
+    noStroke();
+    push();
+    fill(255, 0, 0);
+    ellipse(noseX, noseY, 10, 10);
+
+    
+    fill(0, 255, 0);
+    ellipse(leftWristX, leftWristY, 10, 10);
+    ellipse(rightWristX, rightWristY, 10, 10);
+    pop();
+
+    shifter.pitch = map(rightWristY, 0, height, 12, -12);
+    loopStart = map(leftWristX, 0, width, 2000, 7000);
+    loopEnd = map(rightWristX, width, 0, 2000, 7000);
+    // shifter.pitch = map(rightWristY,0,height,-12,12);
+    cutoffFreq = map(noseY, 0, height, 1000, 100);
+    distortionEffect = map(noseX, 0, width, 10, 1);
+ 
+
+  }
+  //if choose no webcam
+
+  if (state == "sun") {
+
+
+    loopStartSlider.show();
+    loopEndSlider.show();
+    shiftSlider.show();
+    distortionSlider.show();
+    cutoffFreqSlider.show();
+
+
+    shifter.pitch = shiftSlider.value();
+    loopStart = loopStartSlider.value();
+    loopEnd = loopEndSlider.value();
+    cutoffFreq = cutoffFreqSlider.value();
+    distortionEffect = distortionSlider.value();
+
+    textAlign('right');
+    fill("white");
+    text("Pitch: " + shiftSlider.value() + " Half Steps", shiftSlider.x + shiftSlider.width, shiftSlider.y - 10);
+    text("Loop Start: " + int(loopStartSlider.value()), loopStartSlider.x + loopStartSlider.width, loopStartSlider.y - 10);
+    text("Loop End: " + int(loopEndSlider.value()), loopEndSlider.x + loopEndSlider.width, loopEndSlider.y - 15);
+    text("Distortion: " + Number(distortionSlider.value().toFixed(2)), distortionSlider.x + distortionSlider.width, distortionSlider.y - 10);
+    text("Cut Off Frequency: " + int(cutoffFreqSlider.value()), cutoffFreqSlider.x + cutoffFreqSlider.width, cutoffFreqSlider.y - 10);
+
+
+  }
+
+
 
   push();
   translate(width / 2, height / 2);
@@ -238,31 +314,33 @@ function draw() {
 
   }
   pop();
-  
+
   //to autostart 
   player.autostart = true;
   //map the sun altitude to set the duration time 
-  sunToDur=map(sun_altitude,-90,90,1,20);
-
+  if (sunToDur) {
+    sunToDur = map(sun_altitude, -90, 90, 1, 40);
+    player.duration = sunToDur;
+    console.log("suntoDur", sunToDur);
+  }
   //assign individual values to player to update 
   player.loopEnd = loopEnd;
   distortion.distortion = distortionEffect;
   filter.cutoff = cuoffFreq;
 
-  //when requests too much, it does not work 
-  player.duration=sunToDur;
-  console.log("suntoDur",sunToDur)
-  fill("white");
-  text("Shift value parameter: " + shiftSlider.value() + " half steps", shiftSlider.x + 100, shiftSlider.y - 10);
-  text(int(loopStartSlider.value()) + "loopStartSlider", loopStartSlider.x + 100, loopStartSlider.y - 10);
-  text(int(loopEndSlider.value()) + "loopEndSlider", loopEndSlider.x + 100, loopEndSlider.y - 15);
-  text(Number(distortionSlider.value().toFixed(2)) + "distortionSlider", distortionSlider.x + 100, distortionSlider.y - 10);
-  text(int(cutoffFreqSlider.value()) + "cutoffFreq", cutoffFreqSlider.x + 100, cutoffFreqSlider.y - 10);
 
   info();
 }
+
+
+
 //update the lat and draw every 20 seconds 
 window.setInterval(() => {
+  getAllData();
+}, 2000);
+
+
+function getAllData() {
   newLat = float(random(lat, lat + 20));
   newLon = float(random(lon, lon + 20));
   //constantly updates the link and update it in the player 
@@ -273,20 +351,17 @@ window.setInterval(() => {
   //read response intervally 
   httpDo(issPath, 'GET', readResponseISS);
   httpDo(sunPath, 'GET', readResponse);
-
-
-}, 20000);
-
+  console.log("getting field recordings");
+}
 
 function readResponseISS(e) {
   let ISSdata = JSON.parse(e);
   lat = ISSdata.latitude.toFixed(2);
   lon = ISSdata.longitude.toFixed(2);
-  console.log("lat",lat);
+  console.log("lat", lat);
   console.log("lon", lon);
 
 }
-
 
 function readResponse(response) {
   let data = JSON.parse(response);
@@ -299,17 +374,46 @@ function readResponse(response) {
 //get webcam data to manipulate some thing - simple posenet - add graphics later 
 
 // would be a symphony of sun and us - sun is always playing in the background; human movement geneerate something else
+function info() {
+  if (state === "us") {
+
+    textAlign('center');
+    textSize(24);
+    instructionWebCam = `With webcam, you can join in the symphony.`;
+
+    textSize(15);
+    instruction1 = `Move your head horizontally to distort the recording:  ${Number(distortionEffect).toFixed(2)} `;
+    instruction2 = ` Move your head vertically to choose the cut off frequency:  ${Number(cutoffFreq).toFixed(2)}`;
+    instruction3 = `Move your right hand vertically to change pitch: ${Number(shifter.pitch).toFixed(0)}`;
+    instruction4 = ` Move your left hand to set the loop start point: ${Number(loopStart).toFixed(0)}`;
+    instruction5 = `Move your right hand to set the loop end point: ${Number(loopEnd).toFixed(0)}`;
+
+    text(instructionWebCam, width / 2, height / 2 + 150);
+    text(instruction1, width / 2, height / 2 + 200);
+    text(instruction2, width / 2, height / 2 + 250);
+    text(instruction3, width / 2, height / 2 + 300);
+    text(instruction4, width / 2, height / 2 + 350);
+    text(instruction5, width / 2, height / 2 + 400);
+
+    textAlign("left")
+    instructionSun = `Enjoy the compilation of field recordings by the ISS position and altitude of the sun.`
+    text(instructionSun, 50, height - 100, width - 50, height - 50);
 
 
-function info(){
-  instructionWebCam=`With webcam, you can join in the symphony. Try to move your head to change xxx, move around your hands to change xxx`;
-  text(instructionWebCam, 50, height-150, width-50, height-100); 
+    infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
+    text(infoString, 50, height - 50, width - 50, height);
 
-  instructionSun=`Enjoy the compilation of field recordings by the ISS position and altitude of the sun.`
-  text(instructionSun, 50, height-100, width-50, height-50); 
+  } else {
 
-  infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
- text(infoString, 50, height-50, width-50, height); 
+    textAlign("left")
+    instructionSun = `Enjoy the compilation of field recordings by the ISS position and altitude of the sun.`
+    text(instructionSun, 50, height - 100, width - 50, height - 50);
+
+
+    infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
+    text(infoString, 50, height - 50, width - 50, height);
+  }
+
 }
 // simple visuals
 
@@ -324,20 +428,26 @@ function wobble(x, y, a, b) {
 
 
   //with slider 
-  distortionLevel = map(distortionEffect, 0, 1, 1, 20);
-  total = map(shiftSlider.value(), -12, 12, 10, 150);
-  loopRange = loopEnd-loopStart;
-  loopLevel = map(loopRange, 0,loopEnd+loopStart,1,10);
-  cutoffLevel = map(cutoffFreq,0,10000,1,5);
+  if (state == "sun") {
+    distortionLevel = map(distortionEffect, 0, 1, 1, 20);
+    total = map(shifter.pitch, -12, 12, 10, 150);
+    loopRange = loopEnd - loopStart;
+    loopLevel = map(loopRange, 0, loopEnd + loopStart, 1, 10);
+    cutoffLevel = map(cutoffFreq, 0, 10000, 1, 5);
+  }
 
-  //with posenet 
-  // distortionLevel = map(noseX, 0, width, 1,20);
-  // total = map(noseY, 0, height, 10, 150);
-  // loopRange = loopEnd-loopStart;
-  // handRange = abs(leftWristX - rightWristX);
-  // loopLevel = map(handRange, 0,width,1,10);
-  // cutoffLevel = map(cutoffFreq,0,10000,1,5);
 
+  if (state == "us") {
+
+    //with posenet 
+
+    distortionLevel = map(noseX, 0, width, 1, 10);
+    total = map(noseY, 0, height, 10, 150);
+    loopRange = loopEnd - loopStart;
+    loopLevel = map(loopRange, 0, width, 1, 10);
+    cutoffLevel = map(cutoffFreq, 0, 10000, 1, 5);
+
+  }
 
   zoff += 0.5;
   if (zoff > 2) {
@@ -352,48 +462,46 @@ function wobble(x, y, a, b) {
   // let col; //create gradient color 
 
   stroke("white");
-  strokeWeight(distortionEffect*zoff);
+  strokeWeight(distortionLevel / 20 * zoff);
   noFill();
-  line(x*loopLevel, y*loopLevel, a, b);
-  line(x * r / width/b, y * r / height, a, b);
+  line(x * loopLevel, y * loopLevel, a, b);
+  line(x * r / width / b, y * r / height, a, b);
 
   noStroke();
   fill("white");
-  ellipse(a * total * 2, b * distortionLevel * 2,y / total);
-  rect(a * total /2, b * distortionLevel * 2,y/total ,x/distortionLevel);
+  ellipse(a * total * 2, b * distortionLevel * 2, y / total);
+  rect(a * total / 2, b * distortionLevel * 2, y / total, x / distortionLevel);
 
   stroke("white");
-  strokeWeight(cutoffLevel/zoff/10);
+  strokeWeight(cutoffLevel / zoff / 10);
   noFill();
-  ellipse(x * cutoffLevel, y *  cutoffLevel/total,  b/cutoffLevel*zoff );
+  ellipse(x * cutoffLevel, y * cutoffLevel / total, b / cutoffLevel * zoff);
 
 }
 
-let noseX,noseY, rightWristX,rightWristY, leftWristX,leftWristY,rightKneeX,rightKneeY;
 
 function modelReady() {
   console.log('Model Loaded');
 }
 
-function drawKeypoints()  {
+function drawKeypoints() {
   for (let i = 0; i < poses.length; i++) {
     let pose = poses[i].pose;
     for (let j = 0; j < pose.keypoints.length; j++) {
       let keypoint = pose.keypoints[j];
 
-      if (keypoint.score > 0.8) {
-        if(keypoint.part='nose'){
-          noseX=keypoint.position.x;
-          noseY=keypoint.position.y;
+      if (keypoint.score > 0.9) {
+        if (keypoint.part = 'nose') {
+          noseX = keypoint.position.x;
+          noseY = keypoint.position.y;
         }
-        if(keypoint.part='leftWrist'){
-          leftWristX=keypoint.position.x;
-          leftWristY=keypoint.position.y;
-          // console.log(leftWristX)
+        if (keypoint.part = 'leftWrist') {
+          leftWristX = keypoint.position.x;
+          leftWristY = keypoint.position.y;
         }
-        if(keypoint.part='rightWrist'){
-          rightWristX=keypoint.position.x;
-          rightWristY=keypoint.position.y;
+        if (keypoint.part = 'rightWrist') {
+          rightWristX = keypoint.position.x;
+          rightWristY = keypoint.position.y;
         }
 
         // if(keypoint.part='rightKnee'){
@@ -406,9 +514,12 @@ function drawKeypoints()  {
         //   leftKneeY=keypoint.position.y;
         //   console.log("leftKneeX",leftKneeX)
         // }
-         fill(255, 0, 0);
-        noStroke();
-        ellipse(keypoint.position.x, keypoint.position.y, 10, 10);
+
+        //nose red
+
+        //wrist yellow 
+
+        // ellipse(keypoint.position.x, keypoint.position.y, 10, 10);
       }
     }
   }

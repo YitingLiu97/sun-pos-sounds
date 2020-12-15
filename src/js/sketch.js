@@ -372,8 +372,10 @@ function loading(){
 function getAllData() {
   newLat = float(random(lat, lat + 20));
   newLon = float(random(lon, lon + 20));
+
   //constantly updates the link and update it in the player 
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
+  
   fetchLink();
   let url = proxy.concat(recordingLink);
   player.load(url);

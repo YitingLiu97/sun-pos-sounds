@@ -104,7 +104,10 @@ input[type=range]:focus::-ms-fill-lower {
 input[type=range]:focus::-ms-fill-upper {
   background: #ffffff;
 }
-
+input[type=range]:active::-webkit-slider-thumb{
+   background-color:white;
+   border: black 1pt double;
+  } 
 /* button */
 button {
 	box-shadow:inset 0px 1px 0px 0px #ffffff;
@@ -144,7 +147,26 @@ button:active {
   color: white;
   width: auto;
   padding-right: 20px;
+  opacity: 0.5;
 }
+
+#showAbout{
+  display: none;
+  z-index: 10;
+  /* left: 0; */
+  right: 0;
+  top: 5vh;
+    text-align: right;
+  position: absolute;
+  color: white;
+  border-radius: 50;
+  border: 1pt white double;
+  opacity: 0.8;
+  width: 300px;
+  padding: 0 20px;
+  height: auto;
+}
+
 a{
  /* background-color: white; */
  color: white;

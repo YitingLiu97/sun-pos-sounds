@@ -364,7 +364,7 @@ window.setInterval(() => {
   playState = true;
   // console.log("playstate", playState)
 
-}, 20000);
+}, 10000);
 
 function loading(){
   text('loading', width/2,height/2);

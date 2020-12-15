@@ -180,7 +180,7 @@ function setup() {
     "loopStart": loopStart,
     "loopEnd": loopEnd,
     "reverse": false,
-    "duration": 2, //changed by the sun altitude in draw; 
+    "duration": 20, //changed by the sun altitude in draw; 
     "fadeIn": fadeInTime,
     "fadeOut": fadeOutTime
 
@@ -224,11 +224,11 @@ function UI() {
   shiftSlider.style("width", "200px");
   shiftSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing);
 
-  loopStartSlider = createSlider(0, 10000, 20, 1);
+  loopStartSlider = createSlider(0, 2000, 20, 1);
   loopStartSlider.style("width", "200px");
   loopStartSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 2);
 
-  loopEndSlider = createSlider(0, 10000, 5000, 1);
+  loopEndSlider = createSlider(0, 2000, 1000, 1);
   loopEndSlider.style("width", "200px");
   loopEndSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 3);
 
@@ -269,6 +269,8 @@ function usIsPressed() {
 function draw() {
 
   background(0);
+
+// console.log( "player duration ",player.duration);
 
   // if choose webcam 
   if (state == "us") {
@@ -325,6 +327,10 @@ function draw() {
 
 
 
+  //to autostart 
+  player.autostart = true;
+  player.loopStart=loopStart;
+  player.loopEnd=loopEnd;
   push();
 
   translate(width / 2, height / 2);
@@ -337,10 +343,6 @@ function draw() {
   }
   pop();
 
-  //to autostart 
-  player.autostart = true;
-  player.loopStart=loopStart;
-  player.loopEnd=loopEnd;
   //map the sun altitude to set the duration time 
   if (sunToDur) {
     sunToDur = map(sun_altitude, -90, 90, 1, 40);

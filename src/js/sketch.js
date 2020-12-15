@@ -71,12 +71,14 @@ let factor = 3,
 let sunToDur;
 let state = "sun";
 
+let issPath,sunPath;
 function preload() {
+   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
+   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=e01854cbed884f7d97f31665ef5d352e";
+
   //read sun API 
-  sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=e01854cbed884f7d97f31665ef5d352e";
   httpDo(sunPath, 'GET', readResponse);
   //read ISS API 
-  issPath = "https://api.wheretheiss.at/v1/satellites/25544";
   httpDo(issPath, 'GET', readResponseISS);
 
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
@@ -232,13 +234,22 @@ function UI() {
 
 function sunIsPressed() {
   state = "sun";
-  console.log("sun is pressed");
+  buttonSun.style('background-color', 'black');
+  buttonSun.style('color', 'white');
+  buttonUs.style('background-color', 'white');
+  buttonUs.style('color', 'black');
+  // console.log("sun is pressed");
   return state;
 }
 
 function usIsPressed() {
   state = "us";
-  console.log("us is pressed");
+  buttonUs.style('background-color', 'black');
+  buttonUs.style('color', 'white');
+  buttonSun.style('background-color', 'white');
+  buttonSun.style('color', 'black');
+
+  // console.log("us is pressed");
   return state;
 }
 
@@ -269,13 +280,11 @@ function draw() {
     ellipse(rightWristX, rightWristY, 10, 10);
     pop();
 
-    shifter.pitch = map(rightWristY, 0, height, 12, -12);
     loopStart = map(leftWristX, 0, width, 2000, 7000);
     loopEnd = map(rightWristX, width, 0, 2000, 7000);
     // shifter.pitch = map(rightWristY,0,height,-12,12);
     cutoffFreq = map(noseY, 0, height, 1000, 100);
     distortionEffect = map(noseX, 0, width, 1, 0);
- 
 
   }
   //if choose no webcam
@@ -324,7 +333,7 @@ function draw() {
   if (sunToDur) {
     sunToDur = map(sun_altitude, -90, 90, 1, 40);
     player.duration = sunToDur;
-    console.log("suntoDur", sunToDur);
+    // console.log("suntoDur", sunToDur);
   }
 
   player.volume.value=-12;
@@ -341,7 +350,7 @@ function draw() {
 window.setInterval(() => {
   getAllData();
   
-}, 2000);
+}, 20000);
 
 
 function getAllData() {
@@ -353,24 +362,27 @@ function getAllData() {
   let url = proxy.concat(recordingLink);
   player.load(url);
   //read response intervally 
+  issPath = "https://api.wheretheiss.at/v1/satellites/25544";
+  sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=e01854cbed884f7d97f31665ef5d352e";
+
   httpDo(issPath, 'GET', readResponseISS);
   httpDo(sunPath, 'GET', readResponse);
-  console.log("getting field recordings");
+  // console.log("getting field recordings");
 }
 
 function readResponseISS(e) {
   let ISSdata = JSON.parse(e);
   lat = ISSdata.latitude.toFixed(2);
   lon = ISSdata.longitude.toFixed(2);
-  console.log("lat", lat);
-  console.log("lon", lon);
+  // console.log("lat", lat);
+  // console.log("lon", lon);
 
 }
 
 function readResponse(response) {
   let data = JSON.parse(response);
   sun_altitude = data.sun_altitude;
-  console.log("sun_altitude", sun_altitude);
+  // console.log("sun_altitude", sun_altitude);
 
 }
 

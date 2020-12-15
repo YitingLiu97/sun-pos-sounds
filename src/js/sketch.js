@@ -145,7 +145,7 @@ function setup() {
     poses = results;
   });
   // Hide the video element, and just show the canvas
-  // video.hide();
+  video.hide();
 
   //manipulate field recordings 
   shifter = new Tone.PitchShift().toMaster();
@@ -323,6 +323,8 @@ function draw() {
     player.duration = sunToDur;
     console.log("suntoDur", sunToDur);
   }
+
+  player.volume.value=-12;
   //assign individual values to player to update 
   player.loopEnd = loopEnd;
   distortion.distortion = distortionEffect;

@@ -148,6 +148,7 @@ button:active {
   width: auto;
   padding-right: 20px;
   opacity: 0.5;
+  display: block;
 }
 
 #showAbout{
@@ -156,14 +157,14 @@ button:active {
   /* left: 0; */
   right: 0;
   top: 5vh;
-    text-align: right;
+  text-align: right;
   position: absolute;
   color: white;
   border-radius: 50;
   border: 1pt white double;
   opacity: 0.8;
   width: 300px;
-  padding: 0 20px;
+  padding:  20px;
   height: auto;
 }
 

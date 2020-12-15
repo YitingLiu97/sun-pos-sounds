@@ -214,8 +214,8 @@ function setup() {
   UI();
   getAllData();
 }
-let spacing = 60;
-let startingPoint = 150;
+let spacing = 50;
+let startingPoint = 100;
 
 function UI() {
 // frameRate(25);

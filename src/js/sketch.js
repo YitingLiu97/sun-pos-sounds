@@ -127,6 +127,7 @@ function fetchLink() {
 
 function setup() {
 
+  textFont('Arial');
   r = width / 2 - 200;
   bgCanvas = createCanvas(windowWidth, windowHeight);
   bgCanvas.id = "bgCanvas";
@@ -203,26 +204,28 @@ function setup() {
 }
 
 function UI() {
+  let spacing = 50;
+  let startingPoint = 150;  
   fill(255);
   shiftSlider = createSlider(-12, 12, 2, 1);
   shiftSlider.style("width", "200px");
-  shiftSlider.position(width / 2 - 100, height / 2 + 150);
+  shiftSlider.position(width / 2 - 100, height / 2 + startingPoint+spacing);
 
   loopStartSlider = createSlider(0, 10000, 20, 1);
   loopStartSlider.style("width", "200px");
-  loopStartSlider.position(width / 2 - 100, height / 2 + 200);
+  loopStartSlider.position(width / 2 - 100, height / 2 + startingPoint+spacing*2);
 
   loopEndSlider = createSlider(0, 10000, 5000, 1);
   loopEndSlider.style("width", "200px");
-  loopEndSlider.position(width / 2 - 100, height / 2 + 270);
+  loopEndSlider.position(width / 2 - 100, height / 2 + startingPoint+spacing*3);
 
   distortionSlider = createSlider(0, 1, 0.1, 0);
   distortionSlider.style("width", "200px");
-  distortionSlider.position(width / 2 - 100, height / 2 + 340);
+  distortionSlider.position(width / 2 - 100, height / 2 + startingPoint+spacing*4);
 
   cutoffFreqSlider = createSlider(0, 10000, 500, 100);
   cutoffFreqSlider.style("width", "200px");
-  cutoffFreqSlider.position(width / 2 - 100, height / 2 + 420);
+  cutoffFreqSlider.position(width / 2 - 100, height / 2 + startingPoint+spacing*5);
 }
 
 
@@ -271,7 +274,7 @@ function draw() {
     loopEnd = map(rightWristX, width, 0, 2000, 7000);
     // shifter.pitch = map(rightWristY,0,height,-12,12);
     cutoffFreq = map(noseY, 0, height, 1000, 100);
-    distortionEffect = map(noseX, 0, width, 10, 1);
+    distortionEffect = map(noseX, 0, width, 1, 0);
  
 
   }
@@ -295,7 +298,7 @@ function draw() {
     fill("white");
     text("Pitch: " + shiftSlider.value() + " Half Steps", shiftSlider.x + shiftSlider.width, shiftSlider.y - 10);
     text("Loop Start: " + int(loopStartSlider.value()), loopStartSlider.x + loopStartSlider.width, loopStartSlider.y - 10);
-    text("Loop End: " + int(loopEndSlider.value()), loopEndSlider.x + loopEndSlider.width, loopEndSlider.y - 15);
+    text("Loop End: " + int(loopEndSlider.value()), loopEndSlider.x + loopEndSlider.width, loopEndSlider.y - 10);
     text("Distortion: " + Number(distortionSlider.value().toFixed(2)), distortionSlider.x + distortionSlider.width, distortionSlider.y - 10);
     text("Cut Off Frequency: " + int(cutoffFreqSlider.value()), cutoffFreqSlider.x + cutoffFreqSlider.width, cutoffFreqSlider.y - 10);
 
@@ -376,6 +379,7 @@ function readResponse(response) {
 
 // would be a symphony of sun and us - sun is always playing in the background; human movement geneerate something else
 function info() {
+  
   if (state === "us") {
 
     textAlign('center');
@@ -396,7 +400,7 @@ function info() {
     text(instruction4, width / 2, height / 2 + 350);
     text(instruction5, width / 2, height / 2 + 400);
 
-    textAlign("left")
+    textAlign("left");
     instructionSun = `Enjoy the compilation of field recordings by the ISS position and altitude of the sun.`
     text(instructionSun, 50, height - 100, width - 50, height - 50);
 
@@ -405,6 +409,7 @@ function info() {
     text(infoString, 50, height - 50, width - 50, height);
 
   } else {
+    textSize(15);
 
     textAlign("left")
     instructionSun = `Enjoy the compilation of field recordings by the ISS position and altitude of the sun.`

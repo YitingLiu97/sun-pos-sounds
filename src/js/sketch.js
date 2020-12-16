@@ -41,7 +41,7 @@ let filter, feedbackDelay;
 //sun's distance to the location determines the effect 
 // find the clip within the 100 radius of the longitude and altitude of location compared to the sun 
 let loopStart = 0,
-  loopEnd = 0;
+  loopEnd = 500;
 let loopStartSlider, loopEndSlider;
 
 let cuoffFreq = 400;
@@ -68,12 +68,13 @@ let noseX, noseY, rightWristX, rightWristY, leftWristX, leftWristY, rightKneeX, 
 let factor = 3,
   total = 10,
   zoff = 0;
-let sunToDur;
+let sunToDur=100;
 let state = "sun";
 
 let issPath, sunPath;
 
 let playState = false;
+let sun_altitude_changed=false;
 
 
 let about = document.getElementById("about");
@@ -115,7 +116,6 @@ function preload() {
   });
   fetchLink();
 }
-
 function fetchLink() {
   //try using express to test the speed 
   fetch(recordingPath, {
@@ -140,7 +140,8 @@ function fetchLink() {
       artist = myBlob[0].artist;
       timeZone = myBlob[0].timezone;
       recdate = myBlob[0].recdate;
-      // console.log("recordingLink", recordingLink);
+      console.log("recordingLink", recordingLink);
+
       return recordingLink;
     });
 
@@ -180,7 +181,7 @@ function setup() {
     "loopStart": loopStart,
     "loopEnd": loopEnd,
     "reverse": false,
-    "duration": 20, //changed by the sun altitude in draw; 
+    "duration": sunToDur, //changed by the sun altitude in draw; 
     "fadeIn": fadeInTime,
     "fadeOut": fadeOutTime
 
@@ -224,11 +225,11 @@ function UI() {
   shiftSlider.style("width", "200px");
   shiftSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing);
 
-  loopStartSlider = createSlider(0, 2000, 20, 1);
+  loopStartSlider = createSlider(0, 500, 1, 10);
   loopStartSlider.style("width", "200px");
   loopStartSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 2);
 
-  loopEndSlider = createSlider(0, 2000, 1000, 1);
+  loopEndSlider = createSlider(0, 500, 250, 10);
   loopEndSlider.style("width", "200px");
   loopEndSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 3);
 
@@ -291,8 +292,8 @@ function draw() {
     ellipse(rightWristX, rightWristY, 10, 10);
     pop();
 
-    loopStart = map(leftWristX, 0, width, 2000, 7000);
-    loopEnd = map(rightWristX, width, 0, 2000, 7000);
+    loopStart = map(leftWristX, 0, width, 0, 500);
+    loopEnd = map(rightWristX, width, 0, 0, 500);
     shifter.pitch = map(rightWristY,0,height,-12,12);
     cutoffFreq = map(noseY, 0, height, 1000, 100);
     distortionEffect = map(noseX, 0, width, 1, 0);
@@ -344,10 +345,15 @@ function draw() {
   pop();
 
   //map the sun altitude to set the duration time 
-  if (sunToDur) {
-    sunToDur = map(sun_altitude, -90, 90, 1, 40);
+  if (sun_altitude_changed) {
+    sunToDur = map(sun_altitude, -90, 90, 1, 200);
     player.duration = sunToDur;
     console.log("suntoDur - player duration", sunToDur);
+  }else{
+    player.duration = 100;
+    // console.log("suntoDur - player duration in else", sunToDur);
+
+
   }
 
   player.volume.value = -12;
@@ -364,6 +370,7 @@ function draw() {
 window.setInterval(() => {
   getAllData();
   playState = true;
+  sun_altitude_changed=true;
   // console.log("playstate", playState)
 
 }, 10000);
@@ -372,15 +379,16 @@ function loading(){
   text('loading', width/2,height/2);
 }
 function getAllData() {
-  newLat = float(random(lat, lat + 20));
-  newLon = float(random(lon, lon + 20));
+  newLat = float(random(lat, lat + 50)).toFixed(2);
+  newLon = float(random(lon, lon + 50)).toFixed(2);
 
   //constantly updates the link and update it in the player 
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
-  
   fetchLink();
+  if(recordingLink){
   let url = proxy.concat(recordingLink);
   player.load(url);
+}
   //read response intervally 
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=e01854cbed884f7d97f31665ef5d352e";
@@ -402,7 +410,7 @@ function readResponseISS(e) {
 function readResponse(response) {
   let data = JSON.parse(response);
   sun_altitude = data.sun_altitude;
-  // console.log("sun_altitude", sun_altitude);
+  console.log("sun_altitude", sun_altitude);
 
 }
 

@@ -114,7 +114,7 @@ function preload() {
     mode: 'no-cors',
     cache: 'default'
   });
-  fetchLink();
+  // fetchLink();
 }
 function fetchLink() {
   //try using express to test the speed 
@@ -292,7 +292,7 @@ function draw() {
     ellipse(rightWristX, rightWristY, 10, 10);
     pop();
 
-    loopStart = map(leftWristX, 0, width, 0, 500);
+    loopStart = map(leftWristX, 0, width, 0, 50);
     loopEnd = map(rightWristX, width, 0, 0, 500);
     shifter.pitch = map(rightWristY,0,height,-12,12);
     cutoffFreq = map(noseY, 0, height, 1000, 100);
@@ -347,8 +347,8 @@ function draw() {
   //map the sun altitude to set the duration time 
   if (sun_altitude_changed) {
     sunToDur = map(sun_altitude, -90, 90, 1, 200);
-    player.duration = sunToDur;
-    console.log("suntoDur - player duration", sunToDur);
+    player.duration = sunToDur.toFixed(2);
+    console.log("suntoDur - player duration", sunToDur.toFixed(2));
   }else{
     player.duration = 100;
     // console.log("suntoDur - player duration in else", sunToDur);
@@ -410,7 +410,7 @@ function readResponseISS(e) {
 function readResponse(response) {
   let data = JSON.parse(response);
   sun_altitude = data.sun_altitude;
-  console.log("sun_altitude", sun_altitude);
+  console.log("sun_altitude", sun_altitude.toFixed(2));
 
 }
 

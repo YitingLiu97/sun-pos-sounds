@@ -225,7 +225,7 @@ function UI() {
   shiftSlider.style("width", "200px");
   shiftSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing);
 
-  loopStartSlider = createSlider(0, 500, 1, 10);
+  loopStartSlider = createSlider(0, 100, 1, 10);
   loopStartSlider.style("width", "200px");
   loopStartSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 2);
 

@@ -221,6 +221,7 @@ let startingPoint = 100;
 function UI() {
 // frameRate(25);
   fill(255);
+  
   shiftSlider = createSlider(-12, 12, 2, 1);
   shiftSlider.style("width", "200px");
   shiftSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing);

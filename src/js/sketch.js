@@ -174,6 +174,8 @@ function setup() {
   //manipulate field recordings 
   shifter = new Tone.PitchShift().toMaster();
 
+
+  console.log("shifter is ",shifter);
   player = new Tone.Player({
     "onload": Tone.noOp,
     "autostart": true,
@@ -295,7 +297,7 @@ function draw() {
 
     loopStart = map(leftWristX, 0, width, 0, 50);
     loopEnd = map(rightWristX, width, 0, 0, 500);
-    shifter.pitch = map(rightWristY,0,height,-12,12);
+    shifter._pitch = map(rightWristY,0,height,-12,12);
     cutoffFreq = map(noseY, 0, height, 1000, 100);
     distortionEffect = map(noseX, 0, width, 1, 0);
 
@@ -310,7 +312,7 @@ function draw() {
     distortionSlider.show();
     cutoffFreqSlider.show();
 
-    shifter.pitch = shiftSlider.value();
+    shifter._pitch = shiftSlider.value();
     loopStart = loopStartSlider.value();
     loopEnd = loopEndSlider.value();
     cutoffFreq = cutoffFreqSlider.value();
@@ -430,7 +432,7 @@ function info() {
     textSize(15);
     instruction1 = `Move your head horizontally to distort the recording:  ${Number(distortionEffect).toFixed(2)} `;
     instruction2 = ` Move your head vertically to choose the cut off frequency:  ${Number(cutoffFreq).toFixed(2)}`;
-    instruction3 = `Move your right hand vertically to change pitch: ${Number(shifter.pitch).toFixed(0)}`;
+    instruction3 = `Move your right hand vertically to change pitch: ${Number(shifter._pitch).toFixed(0)}`;
     instruction4 = ` Move your left hand to set the loop start point: ${Number(loopStart).toFixed(0)}`;
     instruction5 = `Move your right hand to set the loop end point: ${Number(loopEnd).toFixed(0)}`;
 
@@ -476,7 +478,7 @@ function wobble(x, y, a, b) {
   //with slider 
   if (state == "sun") {
     distortionLevel = map(distortionEffect, 0, 1, 1, 20);
-    total = map(shifter.pitch, -12, 12, 10, 150);
+    total = map(shifter._pitch, -12, 12, 10, 150);
     loopRange = loopEnd - loopStart;
     loopLevel = map(loopRange, 0, loopEnd + loopStart, 1, 10);
     cutoffLevel = map(cutoffFreq, 0, 10000, 1, 5);

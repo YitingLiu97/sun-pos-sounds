@@ -146,6 +146,9 @@ function fetchLink() {
 function windowResized() {
   // Resize the canvas when the window is resized
   resizeCanvas(windowWidth, windowHeight);
+   
+  width = windowWidth;
+  heighht = windowHeight; 
 
   if (windowHeight < 768 && windowWidth<600) {
 
@@ -174,7 +177,6 @@ function setup() {
   video.size(width, height);
 
   //single detection for now 
-  // poseNet = ml5.poseNet(video, {flipHorizontal:true},modelReady);
   poseNet = ml5.poseNet(video, {
     flipHorizontal: true
   }, modelReady);
@@ -257,8 +259,6 @@ function createUI() {
   cutoffFreqSlider.style("width", "200px");
 
 
-
-
   updateUI(heightOffset);
 
 }
@@ -300,7 +300,12 @@ function draw() {
     shiftSlider.hide();
     distortionSlider.hide();
     cutoffFreqSlider.hide();
-    image(video, 0, 0, width / 10, height / 10); //video on canvas, position, dimensions
+
+    push();
+    translate(width,0);
+    scale(-1,1);
+    image(video, width/8*7, 0, width / 8, width /8/16*9); //video on canvas, position, dimensions
+    pop();
 
     drawKeypoints();
     noStroke();
@@ -320,8 +325,7 @@ function draw() {
 
   }
   //if choose no webcam
-
-  if (state == "sun") {
+else{
 
     loopStartSlider.show();
     loopEndSlider.show();
@@ -350,8 +354,8 @@ function draw() {
   player.autostart = true;
   player.loopStart = loopStart;
   player.loopEnd = loopEnd;
+  
   push();
-
   translate(width / 2, height / 2);
   factor += 0.015;
   for (let i = 0; i < total; i++) {

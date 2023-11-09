@@ -146,6 +146,19 @@ function fetchLink() {
 function windowResized() {
   // Resize the canvas when the window is resized
   resizeCanvas(windowWidth, windowHeight);
+
+  if (windowHeight < 768 && windowWidth<600) {
+
+    heightOffset = 300 / windowHeight * windowWidth;
+
+  } else {
+    heightOffset = 100;
+
+  }
+
+  updateUI(heightOffset);
+  info(heightOffset);
+
 }
 
 function setup() {
@@ -155,6 +168,7 @@ function setup() {
   bgCanvas = createCanvas(windowWidth, windowHeight);
   bgCanvas.id = "bgCanvas";
   bgCanvas.parent("sketchDiv");
+
 
   video = createCapture(VIDEO);
   video.size(width, height);
@@ -204,45 +218,45 @@ function setup() {
 
   //order of the effect matters 
   player.chain(shifter, distortion, filter, feedbackDelay, Tone.Master);
-
-  buttonSun = createButton("Sun");
-  buttonSun.position(width / 2 - 60 - buttonSun.width / 2, height / 2);
-
-  buttonUs = createButton("US");
-  buttonUs.position(width / 2 + 60 - buttonUs.width / 2, height / 2);
-
+  createUI(heightOffset);
   buttonSun.mousePressed(sunIsPressed);
   buttonUs.mousePressed(usIsPressed);
-  UI();
+  info(heightOffset);
+
 }
 let spacing = 50;
 let startingPoint = 100;
+let heightOffset = 100;
 
-function UI() {
+function updateUI(heightOffset) {
   // frameRate(25);
   fill(255);
-
-  shiftSlider = createSlider(-12, 12, 2, 1);
-  shiftSlider.style("width", "200px");
-  shiftSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing);
-
-  loopStartSlider = createSlider(0, 100, 1, 10);
-  loopStartSlider.style("width", "200px");
-  loopStartSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 2);
-
-  loopEndSlider = createSlider(0, 500, 250, 10);
-  loopEndSlider.style("width", "200px");
-  loopEndSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 3);
-
-  distortionSlider = createSlider(0, 1, 0.1, 0);
-  distortionSlider.style("width", "200px");
-  distortionSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 4);
-
-  cutoffFreqSlider = createSlider(0, 10000, 500, 100);
-  cutoffFreqSlider.style("width", "200px");
-  cutoffFreqSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 5);
+  buttonSun.position(width / 2 - 60 - buttonSun.width / 2, height / 2 - heightOffset);
+  buttonUs.position(width / 2 + 60 - buttonUs.width / 2, height / 2 - heightOffset);
+  shiftSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing - heightOffset);
+  loopStartSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 2 - heightOffset);
+  loopEndSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 3 - heightOffset);
+  distortionSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 4 - heightOffset);
+  cutoffFreqSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 5 - heightOffset);
 }
 
+function createUI() {
+
+  buttonSun = createButton("Sun");
+  buttonUs = createButton("US");
+  shiftSlider = createSlider(-12, 12, 2, 1);
+  shiftSlider.style("width", "200px");
+  loopStartSlider = createSlider(0, 100, 1, 10);
+  loopStartSlider.style("width", "200px");
+  loopEndSlider = createSlider(0, 500, 250, 10);
+  loopEndSlider.style("width", "200px");
+  distortionSlider = createSlider(0, 1, 0.1, 0);
+  distortionSlider.style("width", "200px");
+  cutoffFreqSlider = createSlider(0, 10000, 500, 100);
+  cutoffFreqSlider.style("width", "200px");
+  updateUI(heightOffset);
+
+}
 
 
 function sunIsPressed() {
@@ -324,7 +338,6 @@ function draw() {
     text("Distortion: " + Number(distortionSlider.value().toFixed(2)), distortionSlider.x + distortionSlider.width, distortionSlider.y - spacing / 5);
     text("Cut Off Frequency: " + int(cutoffFreqSlider.value()), cutoffFreqSlider.x + cutoffFreqSlider.width, cutoffFreqSlider.y - spacing / 5);
 
-
   }
 
   //to autostart 
@@ -358,7 +371,7 @@ function draw() {
   player.loopEnd = loopEnd;
   distortion.distortion = distortionEffect;
   filter.cutoff = cuoffFreq;
-  info();
+  info(heightOffset);
 }
 
 function getRandomInt(max) {
@@ -383,7 +396,7 @@ function getAllData(recordingLink) {
 
   //constantly updates the link and update it in the player 
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
-  
+
   fetchLink();
   if (recordingLink) {
     let url = proxy.concat(recordingLink);
@@ -413,7 +426,7 @@ function readResponse(response) {
 //get webcam data to manipulate some thing - simple posenet - add graphics later 
 
 // would be a symphony of sun and us - sun is always playing in the background; human movement geneerate something else
-function info() {
+function info(heightOffset) {
 
   if (state === "us") {
     textAlign('center');
@@ -427,30 +440,17 @@ function info() {
     instruction4 = ` Move your left hand to set the loop start point: ${Number(loopStart).toFixed(0)}`;
     instruction5 = `Move your right hand to set the loop end point: ${Number(loopEnd).toFixed(0)}`;
 
-    text(instructionWebCam, width / 2, height / 2 + startingPoint + spacing / 1.5);
-    text(instruction1, width / 2, height / 2 + startingPoint + spacing * 2 / 1.5);
-    text(instruction2, width / 2, height / 2 + startingPoint + spacing * 3 / 1.5);
-    text(instruction3, width / 2, height / 2 + startingPoint + spacing * 4 / 1.5);
-    text(instruction4, width / 2, height / 2 + startingPoint + spacing * 5 / 1.5);
-    text(instruction5, width / 2, height / 2 + startingPoint + spacing * 6 / 1.5);
+    text(instructionWebCam, width / 2, height / 2 + startingPoint + spacing / 1.5 - heightOffset);
+    text(instruction1, width / 2, height / 2 + startingPoint + spacing * 2 / 1.5 - heightOffset);
+    text(instruction2, width / 2, height / 2 + startingPoint + spacing * 3 / 1.5 - heightOffset);
+    text(instruction3, width / 2, height / 2 + startingPoint + spacing * 4 / 1.5 - heightOffset);
+    text(instruction4, width / 2, height / 2 + startingPoint + spacing * 5 / 1.5 - heightOffset);
+    text(instruction5, width / 2, height / 2 + startingPoint + spacing * 6 / 1.5 - heightOffset);
 
-    textAlign("left");
-    // instructionSun = `Enjoy the compilation of field recordings by the ISS position and altitude of the sun.`
-    // text(instructionSun, 50, height - 100, width - 50, height - 50);
-
-
-    infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
-    text(infoString, 50, height - 50, width - 50, height);
-
-  } else {
-    textSize(15);
-    textAlign("left");
-    // instructionSun = "Enjoy the compilation of field recordings by the ISS position and altitude of the sun.";
-    // text(instructionSun, 50, height - 100, width - 50, height - 50);
-   
-  }
+  } 
+  textAlign("left");
   infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
-  text(infoString, 50, height - 50, width - 50, height);
+  text(infoString, 50, height - 80, width - 50, height);
 }
 
 

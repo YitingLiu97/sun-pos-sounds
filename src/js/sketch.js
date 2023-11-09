@@ -68,26 +68,28 @@ let noseX, noseY, rightWristX, rightWristY, leftWristX, leftWristY, rightKneeX, 
 let factor = 3,
   total = 10,
   zoff = 0;
-let sunToDur=100;
+let sunToDur = 100;
 let state = "sun";
 
 let issPath, sunPath;
 
 let playState = false;
-let sun_altitude_changed=false;
+let sun_altitude_changed = false;
 
 
 let about = document.getElementById("about");
 let showAbout = document.getElementById("showAbout");
 
-about.addEventListener("click",function(){
+let indexForRadio = 0;
+
+about.addEventListener("click", function () {
   console.log("? clicked")
-  if( showAbout.style.display=="none"){
-  showAbout.style.display="block";
-  about.innerHTML="<h2>✖</h2>";
-}else{
-  showAbout.style.display="none";
-  about.innerHTML="<h2>❔</h2>";
+  if (showAbout.style.display == "none") {
+    showAbout.style.display = "block";
+    about.innerHTML = "<h2>✖</h2>";
+  } else {
+    showAbout.style.display = "none";
+    about.innerHTML = "<h2>❔</h2>";
 
   }
 });
@@ -97,56 +99,54 @@ function preload() {
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=b83a03b773884e748b520602f359e4b8";
 
+
+  Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
+
+  recordingPath = proxy + Audio_URL;
+  fetchLink();
   //read sun API 
   httpDo(sunPath, 'GET', readResponse);
   //read ISS API 
   httpDo(issPath, 'GET', readResponseISS);
 
-  Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
-
-  recordingPath = proxy + Audio_URL;
-
   const myHeaders = new Headers();
-
   const myRequest = new Request(recordingPath, {
     method: 'GET',
     headers: myHeaders,
     mode: 'no-cors',
     cache: 'default'
   });
-  // fetchLink();
 }
 function fetchLink() {
   //try using express to test the speed 
   fetch(recordingPath, {
-      "headers": {
-        // "accept": "*/*",
-        // "accept-language": "en-US,en;q=0.9",
-        // "cache-control": "no-cache",
-        // "pragma": "no-cache",
-        // "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "cross-site"
-      },
-      "referrerPolicy": "no-referrer-when-downgrade",
-      "body": null,
-      "method": "GET",
-      "mode": "cors",
-      "credentials": "omit"
-    }).then(response => response.json())
+    "headers": {
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "cross-site"
+    },
+    "referrerPolicy": "no-referrer-when-downgrade",
+    "body": null,
+    "method": "GET",
+    "mode": "cors",
+    "credentials": "omit"
+  }).then(response => response.json())
     .then(myBlob => {
-      recordingLink = myBlob[0].url;
-      rectitle = myBlob[0].rectitle;
-      artist = myBlob[0].artist;
-      timeZone = myBlob[0].timezone;
-      recdate = myBlob[0].recdate;
-      console.log("recordingLink", recordingLink);
-
+      indexForRadio = getRandomInt(myBlob.length - 1);
+      recordingLink = myBlob[indexForRadio].url;
+      rectitle = myBlob[indexForRadio].rectitle;
+      artist = myBlob[indexForRadio].artist;
+      timeZone = myBlob[indexForRadio].timezone;
+      recdate = myBlob[indexForRadio].recdate;
+      console.log(`recordingLink for index  ${indexForRadio} ${recordingLink}`);
       return recordingLink;
     });
-
 }
 
+
+function windowResized() {
+  // Resize the canvas when the window is resized
+  resizeCanvas(windowWidth, windowHeight);
+}
 
 function setup() {
 
@@ -175,7 +175,7 @@ function setup() {
   shifter = new Tone.PitchShift().toMaster();
 
 
-  console.log("shifter is ",shifter);
+  console.log("shifter is ", shifter);
   player = new Tone.Player({
     "onload": Tone.noOp,
     "autostart": true,
@@ -213,17 +213,15 @@ function setup() {
 
   buttonSun.mousePressed(sunIsPressed);
   buttonUs.mousePressed(usIsPressed);
-
   UI();
-  getAllData();
 }
 let spacing = 50;
 let startingPoint = 100;
 
 function UI() {
-// frameRate(25);
+  // frameRate(25);
   fill(255);
-  
+
   shiftSlider = createSlider(-12, 12, 2, 1);
   shiftSlider.style("width", "200px");
   shiftSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing);
@@ -274,7 +272,7 @@ function draw() {
 
   background(0);
 
-// console.log( "player duration ",player.duration);
+  // console.log( "player duration ",player.duration);
 
   // if choose webcam 
   if (state == "us") {
@@ -297,7 +295,7 @@ function draw() {
 
     loopStart = map(leftWristX, 0, width, 0, 50);
     loopEnd = map(rightWristX, width, 0, 0, 500);
-    shifter._pitch = map(rightWristY,0,height,-12,12);
+    shifter._pitch = map(rightWristY, 0, height, -12, 12);
     cutoffFreq = map(noseY, 0, height, 1000, 100);
     distortionEffect = map(noseX, 0, width, 1, 0);
 
@@ -329,12 +327,10 @@ function draw() {
 
   }
 
-
-
   //to autostart 
   player.autostart = true;
-  player.loopStart=loopStart;
-  player.loopEnd=loopEnd;
+  player.loopStart = loopStart;
+  player.loopEnd = loopEnd;
   push();
 
   translate(width / 2, height / 2);
@@ -349,14 +345,12 @@ function draw() {
 
   //map the sun altitude to set the duration time 
   if (sun_altitude_changed) {
-    sunToDur = map(sun_altitude, -90, 90, 1, 200);
+    sunToDur = map(sun_altitude, -90, 90, 1, 400);
     player.duration = sunToDur.toFixed(2);
     console.log("suntoDur - player duration", sunToDur.toFixed(2));
-  }else{
+  } else {
     player.duration = 100;
     console.log("suntoDur - player duration in else", sunToDur);
-
-
   }
 
   player.volume.value = -12;
@@ -367,47 +361,47 @@ function draw() {
   info();
 }
 
-
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}
 
 //update the lat and draw every 20 seconds 
 window.setInterval(() => {
-  getAllData();
+  getAllData(recordingLink);
   playState = true;
-  sun_altitude_changed=true;
+  sun_altitude_changed = true;
   console.log("playstate", playState)
 
 }, 10000);
 
-function loading(){
-  text('loading', width/2,height/2);
+function loading() {
+  text('loading', width / 2, height / 2);
 }
-function getAllData() {
+function getAllData(recordingLink) {
   newLat = float(random(lat, lat + 50)).toFixed(2);
   newLon = float(random(lon, lon + 50)).toFixed(2);
 
   //constantly updates the link and update it in the player 
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
+  
   fetchLink();
-  if(recordingLink){
-  let url = proxy.concat(recordingLink);
-  player.load(url);
-}
+  if (recordingLink) {
+    let url = proxy.concat(recordingLink);
+    player.load(url);
+  }
   //read response intervally 
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=b83a03b773884e748b520602f359e4b8";
 
   httpDo(issPath, 'GET', readResponseISS);
   httpDo(sunPath, 'GET', readResponse);
-   console.log("getting field recordings");
+  console.log("getting field recordings");
 }
 
 function readResponseISS(e) {
   let ISSdata = JSON.parse(e);
   lat = ISSdata.latitude.toFixed(2);
   lon = ISSdata.longitude.toFixed(2);
-  // console.log("lat", lat);
-  // console.log("lon", lon);
-
 }
 
 function readResponse(response) {
@@ -416,15 +410,12 @@ function readResponse(response) {
   console.log("sun_altitude", sun_altitude.toFixed(2));
 
 }
-
-
 //get webcam data to manipulate some thing - simple posenet - add graphics later 
 
 // would be a symphony of sun and us - sun is always playing in the background; human movement geneerate something else
 function info() {
 
   if (state === "us") {
-
     textAlign('center');
     textSize(24);
     instructionWebCam = `With webcam, you can join in the symphony.`;
@@ -436,12 +427,12 @@ function info() {
     instruction4 = ` Move your left hand to set the loop start point: ${Number(loopStart).toFixed(0)}`;
     instruction5 = `Move your right hand to set the loop end point: ${Number(loopEnd).toFixed(0)}`;
 
-    text(instructionWebCam, width / 2, height / 2 + startingPoint+spacing/1.5);
-    text(instruction1, width / 2, height / 2 + startingPoint+spacing*2/1.5);
-    text(instruction2, width / 2, height / 2 + startingPoint+spacing*3/1.5);
-    text(instruction3, width / 2, height / 2 +  startingPoint+spacing*4/1.5);
-    text(instruction4, width / 2, height / 2 +  startingPoint+spacing*5/1.5);
-    text(instruction5, width / 2, height / 2 +  startingPoint+spacing*6/1.5);
+    text(instructionWebCam, width / 2, height / 2 + startingPoint + spacing / 1.5);
+    text(instruction1, width / 2, height / 2 + startingPoint + spacing * 2 / 1.5);
+    text(instruction2, width / 2, height / 2 + startingPoint + spacing * 3 / 1.5);
+    text(instruction3, width / 2, height / 2 + startingPoint + spacing * 4 / 1.5);
+    text(instruction4, width / 2, height / 2 + startingPoint + spacing * 5 / 1.5);
+    text(instruction5, width / 2, height / 2 + startingPoint + spacing * 6 / 1.5);
 
     textAlign("left");
     // instructionSun = `Enjoy the compilation of field recordings by the ISS position and altitude of the sun.`
@@ -453,14 +444,13 @@ function info() {
 
   } else {
     textSize(15);
-
     textAlign("left");
     // instructionSun = "Enjoy the compilation of field recordings by the ISS position and altitude of the sun.";
     // text(instructionSun, 50, height - 100, width - 50, height - 50);
-    infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
-    text(infoString, 50, height - 50, width - 50, height);
+   
   }
-
+  infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
+  text(infoString, 50, height - 50, width - 50, height);
 }
 
 
@@ -484,11 +474,8 @@ function wobble(x, y, a, b) {
     cutoffLevel = map(cutoffFreq, 0, 10000, 1, 5);
   }
 
-
   if (state == "us") {
-
     //with posenet 
-
     distortionLevel = map(noseX, 0, width, 1, 10);
     total = map(noseY, 0, height, 10, 150);
     loopRange = loopEnd - loopStart;
@@ -551,23 +538,6 @@ function drawKeypoints() {
           rightWristX = keypoint.position.x;
           rightWristY = keypoint.position.y;
         }
-
-        // if(keypoint.part='rightKnee'){
-        //   rightKneeX=keypoint.position.x;
-        //   rightKneeY=keypoint.position.y;
-        //   // console.log(leftWristX)
-        // }
-        // if(keypoint.part='leftKnee'){
-        //   leftKneeX=keypoint.position.x;
-        //   leftKneeY=keypoint.position.y;
-        //   console.log("leftKneeX",leftKneeX)
-        // }
-
-        //nose red
-
-        //wrist yellow 
-
-        // ellipse(keypoint.position.x, keypoint.position.y, 10, 10);
       }
     }
   }

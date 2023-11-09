@@ -56,7 +56,7 @@ let timeZone;
 let recdate;
 let infoString;
 let duration, RLat, RLog, Rlink;
-const proxy = 'https://proxy-server-yt.herokuapp.com/';
+const proxy = 'https://gentle-shore-53393-9e9e4e2c71dc.herokuapp.com/';
 
 
 let video;
@@ -95,7 +95,7 @@ about.addEventListener("click",function(){
 
 function preload() {
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
-  sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=e01854cbed884f7d97f31665ef5d352e";
+  sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=b83a03b773884e748b520602f359e4b8";
 
   //read sun API 
   httpDo(sunPath, 'GET', readResponse);
@@ -354,7 +354,7 @@ function draw() {
     console.log("suntoDur - player duration", sunToDur.toFixed(2));
   }else{
     player.duration = 100;
-    // console.log("suntoDur - player duration in else", sunToDur);
+    console.log("suntoDur - player duration in else", sunToDur);
 
 
   }
@@ -374,7 +374,7 @@ window.setInterval(() => {
   getAllData();
   playState = true;
   sun_altitude_changed=true;
-  // console.log("playstate", playState)
+  console.log("playstate", playState)
 
 }, 10000);
 
@@ -394,11 +394,11 @@ function getAllData() {
 }
   //read response intervally 
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
-  sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=e01854cbed884f7d97f31665ef5d352e";
+  sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=b83a03b773884e748b520602f359e4b8";
 
   httpDo(issPath, 'GET', readResponseISS);
   httpDo(sunPath, 'GET', readResponse);
-  // console.log("getting field recordings");
+   console.log("getting field recordings");
 }
 
 function readResponseISS(e) {

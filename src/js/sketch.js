@@ -223,6 +223,7 @@ function setup() {
   buttonUs.mousePressed(usIsPressed);
   info(heightOffset);
 
+
 }
 let spacing = 50;
 let startingPoint = 100;
@@ -244,16 +245,20 @@ function createUI() {
 
   buttonSun = createButton("Sun");
   buttonUs = createButton("US");
-  shiftSlider = createSlider(-12, 12, 2, 1);
+  shiftSlider = createSlider(-12, 12, -12, 1);
   shiftSlider.style("width", "200px");
   loopStartSlider = createSlider(0, 100, 1, 10);
   loopStartSlider.style("width", "200px");
-  loopEndSlider = createSlider(0, 500, 250, 10);
+  loopEndSlider = createSlider(0, 500, 0, 10);
   loopEndSlider.style("width", "200px");
-  distortionSlider = createSlider(0, 1, 0.1, 0);
+  distortionSlider = createSlider(0, 1, 0, 0);
   distortionSlider.style("width", "200px");
-  cutoffFreqSlider = createSlider(0, 10000, 500, 100);
+  cutoffFreqSlider = createSlider(0, 10000, 0, 100);
   cutoffFreqSlider.style("width", "200px");
+
+
+
+
   updateUI(heightOffset);
 
 }
@@ -329,6 +334,7 @@ function draw() {
     loopEnd = loopEndSlider.value();
     cutoffFreq = cutoffFreqSlider.value();
     distortionEffect = distortionSlider.value();
+ 
 
     textAlign('right');
     fill("white");

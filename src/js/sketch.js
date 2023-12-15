@@ -56,8 +56,8 @@ let timeZone;
 let recdate;
 let infoString;
 let duration, RLat, RLog, Rlink;
-const proxy = 'https://gentle-shore-53393-9e9e4e2c71dc.herokuapp.com/';
-
+// const proxy = 'https://gentle-shore-53393-9e9e4e2c71dc.herokuapp.com/'; // use netlify to host and check 
+//const proxy = 'https://cors-anywhere.herokuapp.com/'; // use netlify to host and check 
 
 let video;
 let poseNet;
@@ -98,11 +98,9 @@ about.addEventListener("click", function () {
 function preload() {
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=b83a03b773884e748b520602f359e4b8";
-
-
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
 
-  recordingPath = proxy + Audio_URL;
+  recordingPath = Audio_URL;//proxy + 
   fetchLink();
   //read sun API 
   httpDo(sunPath, 'GET', readResponse);
@@ -404,6 +402,8 @@ function getAllData(recordingLink) {
   newLat = float(random(lat, lat + 50)).toFixed(2);
   newLon = float(random(lon, lon + 50)).toFixed(2);
 
+  newLat = 50;
+  newLon = 20;
   //constantly updates the link and update it in the player 
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
 

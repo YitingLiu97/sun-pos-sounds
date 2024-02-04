@@ -3,7 +3,6 @@
 /********
 Questions:
 How to find the duration of the song being played - Need to use it to calculate the loop start and loop end 
-
 How to convert the audio file into JSON but still play it as sound here? 
 *******/
 /********
@@ -40,10 +39,8 @@ let filter, feedbackDelay;
 //loop start and end depending on the sun location 
 //sun's distance to the location determines the effect 
 // find the clip within the 100 radius of the longitude and altitude of location compared to the sun 
-let loopStart = 0,
-  loopEnd = 500;
+let loopStart = 0,loopEnd = 500;
 let loopStartSlider, loopEndSlider;
-
 let cuoffFreq = 400;
 let cutoffFreqSlider;
 
@@ -62,7 +59,6 @@ const proxy = "https://mighty-shelf-54274-3fd4a254a0a2.herokuapp.com/";
 let video;
 let poseNet;
 let poses = [];
-
 let noseX, noseY, rightWristX, rightWristY, leftWristX, leftWristY, rightKneeX, rightKneeY;
 
 let factor = 3,
@@ -70,16 +66,12 @@ let factor = 3,
   zoff = 0;
 let sunToDur = 100;
 let state = "sun";
-
 let issPath, sunPath;
-
 let playState = false;
 let sun_altitude_changed = false;
 
-
 let about = document.getElementById("about");
 let showAbout = document.getElementById("showAbout");
-
 let indexForRadio = 0;
 
 about.addEventListener("click", function () {
@@ -94,7 +86,6 @@ about.addEventListener("click", function () {
   }
 });
 
-
 function preload() {
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=b83a03b773884e748b520602f359e4b8";
@@ -105,14 +96,12 @@ function preload() {
   fetchLink();
 
   const myHeaders = new Headers();
-
   const myRequest = new Request(recordingPath, {
     method: 'GET',
     headers: myHeaders,
     mode: 'no-cors',
     cache: 'default'
   });
-
 
   //read sun API 
   httpDo(sunPath, 'GET', readResponse);
@@ -198,7 +187,7 @@ function windowResized() {
   info(heightOffset);
 }
 
-function adjustFooter(){
+function adjustFooter() {
   let footer = document.getElementById('footer');
   infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
   footer.innerHTML = infoString;
@@ -227,7 +216,7 @@ function setup() {
   video.hide();
 
   //manipulate field recordings 
-   shifter = new Tone.PitchShift().toDestination();
+  shifter = new Tone.PitchShift().toDestination();
   // console.log("shifter is ", shifter);
   player = new Tone.Player({
     "onload": Tone.noOp,
@@ -241,7 +230,6 @@ function setup() {
     "fadeOut": fadeOutTime
 
   });
-
 
   filter = new Tone.Filter(cuoffFreq).toDestination();
   feedbackDelay = new Tone.FeedbackDelay(0.125, 0.5).toDestination();
@@ -262,6 +250,7 @@ function setup() {
   buttonUs.mousePressed(usIsPressed);
   info(heightOffset);
 }
+
 let spacing = 50;
 let startingPoint = 100;
 let heightOffset = 100;
@@ -303,7 +292,6 @@ function sunIsPressed() {
   buttonSun.style('color', 'white');
   buttonUs.style('background-color', 'white');
   buttonUs.style('color', 'black');
-  // console.log("sun is pressed");
   return state;
 }
 
@@ -313,18 +301,16 @@ function usIsPressed() {
   buttonUs.style('color', 'white');
   buttonSun.style('background-color', 'white');
   buttonSun.style('color', 'black');
-
-  // console.log("us is pressed");
   return state;
 }
 
 /*Avoiding putting any sound triggering functions in draw() for this example
  */
+
+let pitch;
 function draw() {
 
   background(0);
-
-  // console.log( "player duration ",player.duration);
 
   // if choose webcam 
   if (state == "us") {
@@ -343,6 +329,7 @@ function draw() {
     drawKeypoints();
     noStroke();
 
+    if(poses){
     push();
     ellipse(noseX, noseY, 10, 10);
     fill(249, 215, 28);
@@ -352,10 +339,10 @@ function draw() {
 
     loopStart = map(leftWristX, 0, width, 0, 50);
     loopEnd = map(rightWristX, width, 0, 0, 500);
-    shifter.pitch = map(rightWristY, 0, height, -12, 12);
+    pitch = (rightWristY==null)? map(noseY, 0, height, -12, 12): map(rightWristY, 0, height, -12, 12);
     cutoffFreq = map(noseY, 0, height, 1000, 100);
     distortionEffect = map(noseX, 0, width, 1, 0);
-
+  }
   }
   //if choose no webcam
   else {
@@ -366,7 +353,7 @@ function draw() {
     distortionSlider.show();
     cutoffFreqSlider.show();
 
-    shifter.pitch = shiftSlider.value();
+    pitch = shiftSlider.value();
     loopStart = loopStartSlider.value();
     loopEnd = loopEndSlider.value();
     cutoffFreq = cutoffFreqSlider.value();
@@ -381,11 +368,8 @@ function draw() {
     text("Cut Off Frequency: " + int(cutoffFreqSlider.value()), cutoffFreqSlider.x + cutoffFreqSlider.width, cutoffFreqSlider.y - spacing / 5);
 
   }
-
-  //to autostart 
-  player.autostart = true;
-  player.loopStart = loopStart;
-  player.loopEnd = loopEnd;
+  player.loopStart = loopStart + 0.2;
+  player.loopEnd = loopEnd / 500 * player.duration;
 
   push();
   translate(width / 2, height / 2);
@@ -397,7 +381,6 @@ function draw() {
 
   }
   pop();
-
   //map the sun altitude to set the duration time 
   if (sun_altitude_changed) {
     sunToDur = map(sun_altitude, -90, 90, 1, 400);
@@ -406,19 +389,11 @@ function draw() {
     sun_altitude_changed = false;
   } else {
     player.duration = 100;
-    //  console.log("suntoDur - player duration in else", sunToDur);
   }
-  //to autostart 
-  // player.autostart = true;
-  // if (loopStart && loopEnd) {
-  //   player.loopStart = loopStart;
-  //   player.loopEnd = loopEnd;
-  // }
-  // else {
-  //   player.loopStart = 0;
-  //   player.loopEnd = 100;
-  // }
   player.volume.value = -12;
+  console.log("pitch is ",pitch);
+  shifter.pitch = pitch; 
+
   //assign individual values to player to update 
   distortion.distortion = distortionEffect;
   filter.cutoff = cuoffFreq;
@@ -441,24 +416,34 @@ window.setInterval(() => {
 function loading() {
   text('loading', width / 2, height / 2);
 }
-function getAllData(recordingLink) {
-  newLat = float(random(lat, lat + 50)).toFixed(2);
-  newLon = float(random(lon, lon + 50)).toFixed(2);
-  //constantly updates the link and update it in the player 
-  Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
 
-  fetchLink();
+async function fetchAndLoad() {
+  recordingLink = await fetchLink();
   if (recordingLink) {
     let url = proxy.concat(recordingLink);
-    player.load(url);
+    await player.load(url);
   }
+}
+
+function getAllData(recordingLink) {
+  
+  lat = (lat === null)? defaultLat: lat;
+  lon = (lon === null)? defaultLon: lon;
+
+  newLat = parseFloat(random(lat, lat + 50)).toFixed(2);
+  newLon = parseFloat(random(lon, lon + 50)).toFixed(2);
+  //constantly updates the link and update it in the player 
+  Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
+  
+  fetchAndLoad();
+  console.log("getting field recordings");
   //read response intervally 
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=b83a03b773884e748b520602f359e4b8";
 
   httpDo(issPath, 'GET', readResponseISS);
   httpDo(sunPath, 'GET', readResponse);
-  console.log("getting field recordings");
+
 }
 
 function readResponseISS(e) {
@@ -500,7 +485,7 @@ function info(heightOffset) {
   }
   textAlign("left");
   //infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
- // text(infoString, 50, height - 80, width - 50, height);
+  // text(infoString, 50, height - 80, width - 50, height);
 }
 
 
@@ -589,5 +574,4 @@ function drawKeypoints() {
       }
     }
   }
-
 }

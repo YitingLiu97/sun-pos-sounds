@@ -56,7 +56,7 @@ let timeZone;
 let recdate;
 let infoString;
 let duration, RLat, RLog, Rlink;
-// const proxy = 'https://gentle-shore-53393-9e9e4e2c71dc.herokuapp.com/'; // use netlify to host and check 
+const proxy = "https://mighty-shelf-54274-3fd4a254a0a2.herokuapp.com/";
 //const proxy = 'https://cors-anywhere.herokuapp.com/'; // use netlify to host and check 
 
 let video;
@@ -100,23 +100,29 @@ function preload() {
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=b83a03b773884e748b520602f359e4b8";
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
 
-  recordingPath = Audio_URL;//proxy + 
+  console.log("audio url is " + Audio_URL);
+  recordingPath = proxy.concat(Audio_URL);
   fetchLink();
-  //read sun API 
-  httpDo(sunPath, 'GET', readResponse);
-  //read ISS API 
-  httpDo(issPath, 'GET', readResponseISS);
 
   const myHeaders = new Headers();
+
   const myRequest = new Request(recordingPath, {
     method: 'GET',
     headers: myHeaders,
     mode: 'no-cors',
     cache: 'default'
   });
+
+
+  //read sun API 
+  httpDo(sunPath, 'GET', readResponse);
+  //read ISS API 
+  httpDo(issPath, 'GET', readResponseISS);
+
+
 }
-function fetchLink() {
-  //try using express to test the speed 
+
+function getJsonFromAPI() {
   fetch(recordingPath, {
     "headers": {
       "sec-fetch-mode": "cors",
@@ -127,39 +133,69 @@ function fetchLink() {
     "method": "GET",
     "mode": "cors",
     "credentials": "omit"
-  }).then(response => response.json())
-    .then(myBlob => {
+  }).then((response) => {
+
+    if (response.ok) {
+      console.log("response is okay");
+      return response.json();
+    }
+
+    return Promise.reject(response);
+  }).then((json) => {
+
+    console.log("current json is " + json);
+
+  }).catch((error) => {
+    console.log(error.status, error.statusText);
+    error.json().then((json) => {
+      console.log(json);
+    })
+  })
+}
+
+function fetchLink() {
+  fetch(recordingPath, {
+    "headers": {
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "cross-site"
+    },
+    "referrerPolicy": "no-referrer-when-downgrade",
+    "body": null,
+    "method": "GET",
+    "mode": "cors",
+    "credentials": "omit"
+  }).then(
+    response => response.json()).
+    then((myBlob) => {
       indexForRadio = getRandomInt(myBlob.length - 1);
       recordingLink = myBlob[indexForRadio].url;
       rectitle = myBlob[indexForRadio].rectitle;
       artist = myBlob[indexForRadio].artist;
       timeZone = myBlob[indexForRadio].timezone;
       recdate = myBlob[indexForRadio].recdate;
-      console.log(`recordingLink for index  ${indexForRadio} ${recordingLink}`);
+      console.log(`recordingLink for index ${indexForRadio} ${recordingLink}`);
       return recordingLink;
+    }).catch((error) => {
+      defaultLink = "https://aporee.org/api/ext/?lat=52.5&lng=13.5";
+      console.log(error);
+      return defaultLink;
     });
 }
-
 
 function windowResized() {
   // Resize the canvas when the window is resized
   resizeCanvas(windowWidth, windowHeight);
-   
   width = windowWidth;
-  heighht = windowHeight; 
+  heighht = windowHeight;
 
-  if (windowHeight < 768 && windowWidth<600) {
-
+  if (windowHeight < 768 && windowWidth < 600) {
     heightOffset = 300 / windowHeight * windowWidth;
-
   } else {
     heightOffset = 100;
-
   }
 
   updateUI(heightOffset);
   info(heightOffset);
-
 }
 
 function setup() {
@@ -169,7 +205,6 @@ function setup() {
   bgCanvas = createCanvas(windowWidth, windowHeight);
   bgCanvas.id = "bgCanvas";
   bgCanvas.parent("sketchDiv");
-
 
   video = createCapture(VIDEO);
   video.size(width, height);
@@ -255,12 +290,9 @@ function createUI() {
   distortionSlider.style("width", "200px");
   cutoffFreqSlider = createSlider(0, 10000, 0, 100);
   cutoffFreqSlider.style("width", "200px");
-
-
   updateUI(heightOffset);
 
 }
-
 
 function sunIsPressed() {
   state = "sun";
@@ -300,9 +332,9 @@ function draw() {
     cutoffFreqSlider.hide();
 
     push();
-    translate(width,0);
-    scale(-1,1);
-    image(video, width/8*7, 0, width / 8, width /8/16*9); //video on canvas, position, dimensions
+    translate(width, 0);
+    scale(-1, 1);
+    image(video, width / 8 * 7, 0, width / 8, width / 8 / 16 * 9); //video on canvas, position, dimensions
     pop();
 
     drawKeypoints();
@@ -323,7 +355,7 @@ function draw() {
 
   }
   //if choose no webcam
-else{
+  else {
 
     loopStartSlider.show();
     loopEndSlider.show();
@@ -336,7 +368,6 @@ else{
     loopEnd = loopEndSlider.value();
     cutoffFreq = cutoffFreqSlider.value();
     distortionEffect = distortionSlider.value();
- 
 
     textAlign('right');
     fill("white");
@@ -352,7 +383,7 @@ else{
   player.autostart = true;
   player.loopStart = loopStart;
   player.loopEnd = loopEnd;
-  
+
   push();
   translate(width / 2, height / 2);
   factor += 0.015;
@@ -369,9 +400,10 @@ else{
     sunToDur = map(sun_altitude, -90, 90, 1, 400);
     player.duration = sunToDur.toFixed(2);
     console.log("suntoDur - player duration", sunToDur.toFixed(2));
+    sun_altitude_changed=false;
   } else {
     player.duration = 100;
-    console.log("suntoDur - player duration in else", sunToDur);
+  //  console.log("suntoDur - player duration in else", sunToDur);
   }
 
   player.volume.value = -12;
@@ -392,7 +424,6 @@ window.setInterval(() => {
   playState = true;
   sun_altitude_changed = true;
   console.log("playstate", playState)
-
 }, 10000);
 
 function loading() {
@@ -401,9 +432,6 @@ function loading() {
 function getAllData(recordingLink) {
   newLat = float(random(lat, lat + 50)).toFixed(2);
   newLon = float(random(lon, lon + 50)).toFixed(2);
-
-  newLat = 50;
-  newLon = 20;
   //constantly updates the link and update it in the player 
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
 
@@ -457,7 +485,7 @@ function info(heightOffset) {
     text(instruction4, width / 2, height / 2 + startingPoint + spacing * 5 / 1.5 - heightOffset);
     text(instruction5, width / 2, height / 2 + startingPoint + spacing * 6 / 1.5 - heightOffset);
 
-  } 
+  }
   textAlign("left");
   infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
   text(infoString, 50, height - 80, width - 50, height);

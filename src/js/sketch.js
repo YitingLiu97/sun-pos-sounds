@@ -400,15 +400,25 @@ function draw() {
     sunToDur = map(sun_altitude, -90, 90, 1, 400);
     player.duration = sunToDur.toFixed(2);
     console.log("suntoDur - player duration", sunToDur.toFixed(2));
-    sun_altitude_changed=false;
+    sun_altitude_changed = false;
   } else {
     player.duration = 100;
-  //  console.log("suntoDur - player duration in else", sunToDur);
+    //  console.log("suntoDur - player duration in else", sunToDur);
   }
+  //to autostart 
+  player.autostart = true;
+  if (loopStart && loopEnd) {
+    player.loopStart = loopStart;
+    player.loopEnd = loopEnd;
+  }
+  else {
+    player.loopStart = 0;
+    player.loopEnd = 100;
 
+
+  }
   player.volume.value = -12;
   //assign individual values to player to update 
-  player.loopEnd = loopEnd;
   distortion.distortion = distortionEffect;
   filter.cutoff = cuoffFreq;
   info(heightOffset);
@@ -424,7 +434,7 @@ window.setInterval(() => {
   playState = true;
   sun_altitude_changed = true;
   console.log("playstate", playState)
-}, 10000);
+}, 100000);
 
 function loading() {
   text('loading', width / 2, height / 2);

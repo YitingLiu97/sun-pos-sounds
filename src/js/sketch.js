@@ -294,6 +294,7 @@ function createUI() {
 
 }
 
+
 function sunIsPressed() {
   state = "sun";
   buttonSun.style('background-color', 'black');

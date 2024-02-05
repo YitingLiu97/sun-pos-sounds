@@ -39,7 +39,7 @@ let filter, feedbackDelay;
 //loop start and end depending on the sun location 
 //sun's distance to the location determines the effect 
 // find the clip within the 100 radius of the longitude and altitude of location compared to the sun 
-let loopStart = 0,loopEnd = 500;
+let loopStart = 0, loopEnd = 500;
 let loopStartSlider, loopEndSlider;
 let cuoffFreq = 400;
 let cutoffFreqSlider;
@@ -85,6 +85,22 @@ about.addEventListener("click", function () {
 
   }
 });
+
+// document.querySelector('body').addEventListener('click', async () => {
+//   await Tone.start();
+//   console.log('Playback resumed successfully');
+// });
+// simple tone js update 
+const synth = new Tone.Synth().toDestination();
+document.documentElement.addEventListener('click', async () => {
+  await Tone.start();
+  console.log('Audio context started');
+  synth.triggerAttackRelease("C4", "8n");
+  // TESTING 
+  getAllData(recordingLink);
+
+});
+
 
 function preload() {
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
@@ -141,35 +157,38 @@ function getJsonFromAPI() {
     })
   })
 }
-
-function fetchLink() {
-  fetch(recordingPath, {
-    "headers": {
-      "sec-fetch-mode": "cors",
-      "sec-fetch-site": "cross-site"
-    },
-    "referrerPolicy": "no-referrer-when-downgrade",
-    "body": null,
-    "method": "GET",
-    "mode": "cors",
-    "credentials": "omit"
-  }).then(
-    response => response.json()).
-    then((myBlob) => {
-      indexForRadio = getRandomInt(myBlob.length - 1);
-      recordingLink = myBlob[indexForRadio].url;
-      rectitle = myBlob[indexForRadio].rectitle;
-      artist = myBlob[indexForRadio].artist;
-      timeZone = myBlob[indexForRadio].timezone;
-      recdate = myBlob[indexForRadio].recdate;
-      console.log(`recordingLink for index ${indexForRadio} ${recordingLink}`);
-      return recordingLink;
-    }).catch((error) => {
-      defaultLink = "https://aporee.org/api/ext/?lat=52.5&lng=13.5";
-      console.log(error);
-      return defaultLink;
+async function fetchLink() {
+  try {
+    const response = await fetch(recordingPath, {
+      "headers": {
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "cross-site"
+      },
+      "referrerPolicy": "no-referrer-when-downgrade",
+      "method": "GET",
+      "mode": "cors",
+      "credentials": "omit"
     });
+
+    if (!response.ok) {
+      throw new Error(`Network response was not ok: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    if (data && data.length > 0) {
+      const index = getRandomInt(data.length);
+      const recording = data[index];
+      console.log(`recordingLink for index ${index}: ${recording.url}`);
+      return recording.url; // Make sure this is the correct path to the URL in your data structure
+    } else {
+      throw new Error("No data returned");
+    }
+  } catch (error) {
+    console.error("Failed to fetch recording link:", error);
+    return null; // Return null or a default link as needed
+  }
 }
+
 
 function windowResized() {
   // Resize the canvas when the window is resized
@@ -216,11 +235,11 @@ function setup() {
   video.hide();
 
   //manipulate field recordings 
-  shifter = new Tone.PitchShift().toDestination();
+  shifter = new Tone.PitchShift();
   // console.log("shifter is ", shifter);
   player = new Tone.Player({
     "onload": Tone.noOp,
-    "autostart": true,
+    //"autostart": true,
     "loop": true, //set the loop to be true to use loopstart and loopend
     "loopStart": loopStart,
     "loopEnd": loopEnd,
@@ -231,20 +250,19 @@ function setup() {
 
   });
 
-  filter = new Tone.Filter(cuoffFreq).toDestination();
-  feedbackDelay = new Tone.FeedbackDelay(0.125, 0.5).toDestination();
+  filter = new Tone.Filter(cuoffFreq);
+  feedbackDelay = new Tone.FeedbackDelay(0.125, 0.5);
 
   pingPong = new Tone.PingPongDelay({
     "delayTime": 0.25,
     "maxDelayTime": 1
-  }).toDestination();
+  });
 
   distortion = new Tone.Distortion({
     "distortion": distortionEffect,
-  }).toDestination();
+  });
 
-  //order of the effect matters 
-  player.chain(shifter, distortion, filter, feedbackDelay, Tone.Master);
+  player.chain(shifter, distortion, filter, feedbackDelay, Tone.Destination);
   createUI(heightOffset);
   buttonSun.mousePressed(sunIsPressed);
   buttonUs.mousePressed(usIsPressed);
@@ -292,6 +310,7 @@ function sunIsPressed() {
   buttonSun.style('color', 'white');
   buttonUs.style('background-color', 'white');
   buttonUs.style('color', 'black');
+
   return state;
 }
 
@@ -329,20 +348,20 @@ function draw() {
     drawKeypoints();
     noStroke();
 
-    if(poses){
-    push();
-    ellipse(noseX, noseY, 10, 10);
-    fill(249, 215, 28);
-    ellipse(leftWristX, leftWristY, 10, 10);
-    ellipse(rightWristX, rightWristY, 10, 10);
-    pop();
+    if (poses) {
+      push();
+      ellipse(noseX, noseY, 10, 10);
+      fill(249, 215, 28);
+      ellipse(leftWristX, leftWristY, 10, 10);
+      ellipse(rightWristX, rightWristY, 10, 10);
+      pop();
 
-    loopStart = map(leftWristX, 0, width, 0, 50);
-    loopEnd = map(rightWristX, width, 0, 0, 500);
-    pitch = (rightWristY==null)? map(noseY, 0, height, -12, 12): map(rightWristY, 0, height, -12, 12);
-    cutoffFreq = map(noseY, 0, height, 1000, 100);
-    distortionEffect = map(noseX, 0, width, 1, 0);
-  }
+      loopStart = map(leftWristX, 0, width, 0, 50);
+      loopEnd = map(rightWristX, width, 0, 0, 500);
+      pitch = (rightWristY == null) ? map(noseY, 0, height, -12, 12) : map(rightWristY, 0, height, -12, 12);
+      cutoffFreq = map(noseY, 0, height, 1000, 100);
+      distortionEffect = map(noseX, 0, width, 1, 0);
+    }
   }
   //if choose no webcam
   else {
@@ -368,8 +387,9 @@ function draw() {
     text("Cut Off Frequency: " + int(cutoffFreqSlider.value()), cutoffFreqSlider.x + cutoffFreqSlider.width, cutoffFreqSlider.y - spacing / 5);
 
   }
-  player.loopStart = loopStart + 0.2;
-  player.loopEnd = loopEnd / 500 * player.duration;
+  player.loopStart = loopStart;
+  player.loopEnd = (loopEnd == 0) ? 500 : loopEnd / 500 * player.duration;
+  //console.log("player.loopEnd  ", player.loopEnd );
 
   push();
   translate(width / 2, height / 2);
@@ -390,9 +410,8 @@ function draw() {
   } else {
     player.duration = 100;
   }
-  player.volume.value = -12;
-  console.log("pitch is ",pitch);
-  shifter.pitch = pitch; 
+  //player.volume.value = 0;//-12;
+  shifter.pitch = pitch;
 
   //assign individual values to player to update 
   distortion.distortion = distortionEffect;
@@ -406,7 +425,7 @@ function getRandomInt(max) {
 
 //update the lat and draw every 20 seconds 
 window.setInterval(() => {
-  getAllData(recordingLink);
+ // getAllData(recordingLink);
   adjustFooter();
   playState = true;
   sun_altitude_changed = true;
@@ -417,25 +436,47 @@ function loading() {
   text('loading', width / 2, height / 2);
 }
 
-async function fetchAndLoad() {
-  recordingLink = await fetchLink();
+async function fetchAndLoad(recordingLink) {
+  console.log("Attempting to load recording link:", recordingLink);
   if (recordingLink) {
-    let url = proxy.concat(recordingLink);
-    await player.load(url);
+    const url = proxy.concat(recordingLink);
+    console.log("Complete URL for player:", url);
+
+    try {
+      await player.load(url);
+      //await Tone.start();
+      console.log("Tone and player successfully started");
+    } catch (error) {
+      console.error("Failed to load player or start Tone:", error);
+    }
+  } else {
+    console.log("Recording link is undefined or null, cannot proceed");
   }
 }
+function randomBetween(a, b) {
+  const lower = Math.min(a, b);
+  const upper = Math.max(a, b);
+  return Math.random() * (upper - lower) + lower;
+}
 
-function getAllData(recordingLink) {
-  
-  lat = (lat === null)? defaultLat: lat;
-  lon = (lon === null)? defaultLon: lon;
+async function getAllData(recordingLink) {
 
-  newLat = parseFloat(random(lat, lat + 50)).toFixed(2);
-  newLon = parseFloat(random(lon, lon + 50)).toFixed(2);
+  lat = (lat === null) ? defaultLat : lat;
+  lon = (lon === null) ? defaultLon : lon;
+
+  newLat = parseFloat(randomBetween(lat, lat + 50)).toFixed(2);
+  newLon = parseFloat(randomBetween(lon, lon + 50)).toFixed(2);
   //constantly updates the link and update it in the player 
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
-  
-  fetchAndLoad();
+
+   recordingLink = await fetchLink();
+  console.log("Fetched recording link:", recordingLink);
+
+  if (recordingLink) {
+    await fetchAndLoad(recordingLink);
+  } else {
+    console.log("No recording link fetched, cannot load player");
+  }
   console.log("getting field recordings");
   //read response intervally 
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";

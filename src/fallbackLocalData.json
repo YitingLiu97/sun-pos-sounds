@@ -1,0 +1,35 @@
+[
+ {
+  "loctitle": "Sherman Beach, Wildwood, Missouri, USA",
+  "rectitle": "Sherman Beach",
+  "lat": "38.534719315193",
+  "lng": "-90.587968999068",
+  "url": "./assets/ShermanBeach.mp3",
+  "recdate": "20.05.2023 14:57",
+  "license": "PUBLIC-DOMAIN",
+  "timezone": "America/Chicago",
+  "artist": "Pierrot Desperes"
+  },
+ {
+  "loctitle": "berlin: mergenthalerring",
+  "rectitle": "A100 - bauabschnitt 16 / federal motorway 100 - construction section 16: destroyed allotment",
+  "lat": "52.478756814172",
+  "lng": "13.461062908173",
+  "url": "./assets/CityCountryMeA100DieselstrMergenthalerringZerstoerteKleingartenanlageSpatzen201401251606OLUNO.mp3",
+  "recdate": "25.01.2014 16:06",
+  "license": "CC-BY-SA",
+  "timezone": "Europe/Berlin",
+  "artist": "henrik schröder"
+  },
+  {
+    "loctitle": "Motorway Bridge, Athens, Greece",
+    "rectitle": "Pedestrian Bridge over Motorway",
+    "lat": "38.0919861424",
+    "lng": "23.791511006167",
+    "url": "./assets/AthensKifisiastreetmarketnoisy.mp3",
+    "recdate": "19.06.2019 19:00",
+    "license": "CC-BY-SA",
+    "timezone": "Europe/Athens",
+    "artist": "Tim Ward"
+    }
+]

@@ -76,7 +76,6 @@ let issPath, sunPath;
 let playState = false;
 let sun_altitude_changed = false;
 
-
 let about = document.getElementById("about");
 let showAbout = document.getElementById("showAbout");
 
@@ -94,8 +93,12 @@ about.addEventListener("click", function () {
   }
 });
 
-document.getElementById("sketchDiv").addEventListener('click',()=>{
-  getAllData(recordingLink);
+document.getElementById("sketchDiv").addEventListener('click', () => {
+ // getAllData(recordingLink);
+  GetDefaultAudioLink();
+  adjustFooter();
+  console.log("pitch", shifter._pitch);
+
 });
 
 function preload() {
@@ -158,6 +161,7 @@ function getJsonFromAPI() {
 }
 
 function fetchLink() {
+  // fetch the api link 
   fetch(recordingPath, {
     "headers": {
       "sec-fetch-mode": "cors",
@@ -169,7 +173,7 @@ function fetchLink() {
     "credentials": "omit"
   }).then(
     response => response.json()).
-    then((myBlob) => {
+  then((myBlob) => {
       indexForRadio = getRandomInt(myBlob.length - 1);
       recordingLink = myBlob[indexForRadio].url;
       rectitle = myBlob[indexForRadio].rectitle;
@@ -177,14 +181,54 @@ function fetchLink() {
       timeZone = myBlob[indexForRadio].timezone;
       recdate = myBlob[indexForRadio].recdate;
       console.log(`recordingLink for index ${indexForRadio} ${recordingLink}`);
-      return recordingLink;
+      
+      let url = proxy.concat(recordingLink);
+      player.load(url);
+      return url;
     }).catch((error) => {
-      defaultLink = "https://aporee.org/api/ext/?lat=52.5&lng=13.5";
+     // fetch the deafult local json if api does not work 
+      defaultLink = GetDefaultAudioLink();
       console.log(error);
+      player.load(defaultLink);
       return defaultLink;
     });
+
+
 }
 
+GetAudioFromDefaultJson(); // only load once 
+
+function GetDefaultAudioLink(){
+  console.log("GetDefaultAudioLink when API doesnt work");
+  if(defaultJson==null)
+  return; 
+
+  indexForRadio = getRandomInt(defaultJson.length - 1);
+  recordingLink = defaultJson[indexForRadio].url;
+  rectitle = defaultJson[indexForRadio].rectitle;
+  artist = defaultJson[indexForRadio].artist;
+  timeZone = defaultJson[indexForRadio].timezone;
+  recdate = defaultJson[indexForRadio].recdate;
+
+  console.log("current recording link is ",recordingLink);
+  return recordingLink;
+}
+let defaultJson; 
+// as a fall back method 
+function GetAudioFromDefaultJson() {
+  fetch('./src/fallbackLocalData.json')
+  .then(response => response.json())
+  .then(data => {
+    console.log(data);
+    defaultJson = data; 
+   
+ 
+  })
+  .catch(error => console.log(error));
+  }
+
+
+  
 function windowResized() {
   // Resize the canvas when the window is resized
   resizeCanvas(windowWidth, windowHeight);
@@ -201,7 +245,7 @@ function windowResized() {
   info(heightOffset);
 }
 
-function adjustFooter(){
+function adjustFooter() {
   let footer = document.getElementById('footer');
   infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
   footer.innerHTML = infoString;
@@ -230,8 +274,9 @@ function setup() {
   video.hide();
 
   //manipulate field recordings 
-  shifter = new Tone.PitchShift().toMaster();
- // console.log("shifter is ", shifter);
+  shifter = new Tone.PitchShift();
+  shifter._pitch = 0;
+  // console.log("shifter is ", shifter);
   player = new Tone.Player({
     "onload": Tone.noOp,
     "autostart": true,
@@ -246,17 +291,17 @@ function setup() {
   });
 
 
-  filter = new Tone.Filter(cuoffFreq).toMaster();
-  feedbackDelay = new Tone.FeedbackDelay(0.125, 0.5).toMaster();
+  filter = new Tone.Filter(cuoffFreq);
+  feedbackDelay = new Tone.FeedbackDelay(0.125, 0.5);
 
   pingPong = new Tone.PingPongDelay({
     "delayTime": 0.25,
     "maxDelayTime": 1
-  }).toMaster();
+  });
 
   distortion = new Tone.Distortion({
     "distortion": distortionEffect,
-  }).toMaster();
+  });
 
   //order of the effect matters 
   player.chain(shifter, distortion, filter, feedbackDelay, Tone.Master);
@@ -439,7 +484,7 @@ window.setInterval(() => {
   playState = true;
   sun_altitude_changed = true;
   console.log("playstate", playState)
-}, 10000);
+}, 100000);
 
 function loading() {
   text('loading', width / 2, height / 2);
@@ -451,10 +496,7 @@ function getAllData(recordingLink) {
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
 
   fetchLink();
-  if (recordingLink) {
-    let url = proxy.concat(recordingLink);
-    player.load(url);
-  }
+  
   //read response intervally 
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=b83a03b773884e748b520602f359e4b8";
@@ -503,7 +545,7 @@ function info(heightOffset) {
   }
   textAlign("left");
   //infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
- // text(infoString, 50, height - 80, width - 50, height);
+  // text(infoString, 50, height - 80, width - 50, height);
 }
 
 

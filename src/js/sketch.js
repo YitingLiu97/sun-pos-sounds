@@ -94,6 +94,9 @@ about.addEventListener("click", function () {
   }
 });
 
+document.getElementById("sketchDiv").addEventListener('click',()=>{
+  getAllData(recordingLink);
+});
 
 function preload() {
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
@@ -126,7 +129,8 @@ function getJsonFromAPI() {
   fetch(recordingPath, {
     "headers": {
       "sec-fetch-mode": "cors",
-      "sec-fetch-site": "cross-site"
+      "sec-fetch-site": "cross-site",
+      'X-Requested-With': 'XMLHttpRequest'
     },
     "referrerPolicy": "no-referrer-when-downgrade",
     "body": null,
@@ -157,7 +161,6 @@ function fetchLink() {
   fetch(recordingPath, {
     "headers": {
       "sec-fetch-mode": "cors",
-      "sec-fetch-site": "cross-site"
     },
     "referrerPolicy": "no-referrer-when-downgrade",
     "body": null,
@@ -198,6 +201,12 @@ function windowResized() {
   info(heightOffset);
 }
 
+function adjustFooter(){
+  let footer = document.getElementById('footer');
+  infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
+  footer.innerHTML = infoString;
+
+}
 function setup() {
 
   textFont('Arial');
@@ -222,9 +231,7 @@ function setup() {
 
   //manipulate field recordings 
   shifter = new Tone.PitchShift().toMaster();
-
-
-  console.log("shifter is ", shifter);
+ // console.log("shifter is ", shifter);
   player = new Tone.Player({
     "onload": Tone.noOp,
     "autostart": true,
@@ -257,8 +264,6 @@ function setup() {
   buttonSun.mousePressed(sunIsPressed);
   buttonUs.mousePressed(usIsPressed);
   info(heightOffset);
-
-
 }
 let spacing = 50;
 let startingPoint = 100;
@@ -407,17 +412,15 @@ function draw() {
     //  console.log("suntoDur - player duration in else", sunToDur);
   }
   //to autostart 
-  player.autostart = true;
-  if (loopStart && loopEnd) {
-    player.loopStart = loopStart;
-    player.loopEnd = loopEnd;
-  }
-  else {
-    player.loopStart = 0;
-    player.loopEnd = 100;
-
-
-  }
+  // player.autostart = true;
+  // if (loopStart && loopEnd) {
+  //   player.loopStart = loopStart;
+  //   player.loopEnd = loopEnd;
+  // }
+  // else {
+  //   player.loopStart = 0;
+  //   player.loopEnd = 100;
+  // }
   player.volume.value = -12;
   //assign individual values to player to update 
   distortion.distortion = distortionEffect;
@@ -431,11 +434,12 @@ function getRandomInt(max) {
 
 //update the lat and draw every 20 seconds 
 window.setInterval(() => {
-  getAllData(recordingLink);
+  //getAllData(recordingLink);
+  adjustFooter();
   playState = true;
   sun_altitude_changed = true;
   console.log("playstate", playState)
-}, 100000);
+}, 10000);
 
 function loading() {
   text('loading', width / 2, height / 2);
@@ -498,8 +502,8 @@ function info(heightOffset) {
 
   }
   textAlign("left");
-  infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
-  text(infoString, 50, height - 80, width - 50, height);
+  //infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
+ // text(infoString, 50, height - 80, width - 50, height);
 }
 
 
@@ -512,8 +516,6 @@ function getVector(index, total) {
 }
 
 function wobble(x, y, a, b) {
-
-
   //with slider 
   if (state == "sun") {
     distortionLevel = map(distortionEffect, 0, 1, 1, 20);

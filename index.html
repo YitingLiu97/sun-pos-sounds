@@ -19,23 +19,22 @@
   <!-- adding open graph protocol for embedding and sharing -->
   <meta property="og:title" content="Sun and Us - Interactive Experience" />
   <meta property="og:type" content="website" />
-  <meta property="og:description"
-    content="An interactive audio-visual experience to perform a symphony with the sun." />
+  <meta property="og:description" content="An interactive audio-visual experience to perform a symphony with the sun." />
   <meta property="og:url" content="https://sunandus.netlify.app/" />
-
+  
   <!-- size recommended is 1.19:1 -->
   <!-- why the images are not showing up in the debugger? Even when I hosted the page, it is not loaded. -->
   <meta property="og:image" content="https://sunandus.netlify.app/assets/demo.png" />
-
+  
   <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-QQYY09XFY4"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-QQYY09XFY4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
-    gtag('config', 'G-QQYY09XFY4');
-  </script>
+  gtag('config', 'G-QQYY09XFY4');
+</script>
 </head>
 
 <body>
@@ -52,15 +51,14 @@
       the <a target="_blank" href="http://api.open-notify.org/"> ISS position</a> and <a target="_blank"
         href="https://ipgeolocation.io/documentation/ip-geolocation-api.html">altitude of the sun</a> .</p>
   </div>
-  <div class="container">
-    <div id="sketchDiv" class="box top">
-    </div>
-    <div class="box bottom" id="footer" class="footer"></div>
+  <div id="sketchDiv">
   </div>
+
   <div id="ui">
   </div>
 
   <div id="info"></div>
+
 
 
   <div></div>

@@ -91,11 +91,14 @@ about.addEventListener("click", function () {
     about.innerHTML = "<h2>❔</h2>";
 
   }
-});
+});0
 
 document.getElementById("sketchDiv").addEventListener('click', () => {
  // getAllData(recordingLink);
-  GetDefaultAudioLink();
+
+  console.log("should play the audio");
+  player.load(GetDefaultAudioLink());
+
   adjustFooter();
   console.log("pitch", shifter._pitch);
 
@@ -107,7 +110,10 @@ function preload() {
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
 
   console.log("audio url is " + Audio_URL);
-  recordingPath = proxy.concat(Audio_URL);
+  // for normal testing 
+  //recordingPath = proxy.concat(Audio_URL);
+  // for testing Cors Issue 
+  recordingPath = Audio_URL;
   fetchLink();
 
   const myHeaders = new Headers();
@@ -119,47 +125,12 @@ function preload() {
     cache: 'default'
   });
 
-
   //read sun API 
   httpDo(sunPath, 'GET', readResponse);
   //read ISS API 
   httpDo(issPath, 'GET', readResponseISS);
 
-
 }
-
-function getJsonFromAPI() {
-  fetch(recordingPath, {
-    "headers": {
-      "sec-fetch-mode": "cors",
-      "sec-fetch-site": "cross-site",
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    "referrerPolicy": "no-referrer-when-downgrade",
-    "body": null,
-    "method": "GET",
-    "mode": "cors",
-    "credentials": "omit"
-  }).then((response) => {
-
-    if (response.ok) {
-      console.log("response is okay");
-      return response.json();
-    }
-
-    return Promise.reject(response);
-  }).then((json) => {
-
-    console.log("current json is " + json);
-
-  }).catch((error) => {
-    console.log(error.status, error.statusText);
-    error.json().then((json) => {
-      console.log(json);
-    })
-  })
-}
-
 function fetchLink() {
   // fetch the api link 
   fetch(recordingPath, {
@@ -181,7 +152,6 @@ function fetchLink() {
       timeZone = myBlob[indexForRadio].timezone;
       recdate = myBlob[indexForRadio].recdate;
       console.log(`recordingLink for index ${indexForRadio} ${recordingLink}`);
-      
       let url = proxy.concat(recordingLink);
       player.load(url);
       return url;
@@ -221,14 +191,10 @@ function GetAudioFromDefaultJson() {
   .then(data => {
     console.log(data);
     defaultJson = data; 
-   
- 
   })
   .catch(error => console.log(error));
   }
 
-
-  
 function windowResized() {
   // Resize the canvas when the window is resized
   resizeCanvas(windowWidth, windowHeight);

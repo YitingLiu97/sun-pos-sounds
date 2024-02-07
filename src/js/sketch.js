@@ -115,9 +115,9 @@ function preload() {
 
   console.log("audio url is " + Audio_URL);
   // for normal testing 
-  recordingPath = proxy.concat(Audio_URL);
+  //recordingPath = proxy.concat(Audio_URL);
   // for testing Cors Issue 
-  //recordingPath = Audio_URL;
+  recordingPath = Audio_URL;
   fetchLink();
 
   const myHeaders = new Headers();
@@ -256,7 +256,6 @@ function setup() {
 
   });
 
-
   filter = new Tone.Filter(cuoffFreq);
   feedbackDelay = new Tone.FeedbackDelay(0.125, 0.5);
 
@@ -272,24 +271,25 @@ function setup() {
   //order of the effect matters 
   player.chain( shifter,distortion, filter, feedbackDelay, Tone.Destination);
   createUI(heightOffset);
-  buttonSun.mousePressed(sunIsPressed);
-  buttonUs.mousePressed(usIsPressed);
-  info(heightOffset);
+
+  // buttonSun.mousePressed(sunIsPressed);
+  // buttonUs.mousePressed(usIsPressed);
+ // info(heightOffset);
 }
 let spacing = 50;//50;
 let startingPoint = 100;
 let heightOffset = 100;
 
-function updateUI(heightOffset) {
-  fill(255);
-  buttonSun.position(width / 2 - 60 - buttonSun.width / 2, height / 2 - heightOffset);
-  buttonUs.position(width / 2 + 60 - buttonUs.width / 2, height / 2 - heightOffset);
-  shiftSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing - heightOffset);
-  loopStartSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 2 - heightOffset);
-  loopEndSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 3 - heightOffset);
-  distortionSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 4 - heightOffset);
-  cutoffFreqSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 5 - heightOffset);
-}
+// function updateUI(heightOffset) {
+//   fill(255);
+//   buttonSun.position(width / 2 - 60 - buttonSun.width / 2, height / 2 - heightOffset);
+//   buttonUs.position(width / 2 + 60 - buttonUs.width / 2, height / 2 - heightOffset);
+//   shiftSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing - heightOffset);
+//   loopStartSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 2 - heightOffset);
+//   loopEndSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 3 - heightOffset);
+//   distortionSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 4 - heightOffset);
+//   cutoffFreqSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 5 - heightOffset);
+// }
 
 document.addEventListener('DOMContentLoaded', (event) => {
   const pitchSlider = document.getElementById('pitchSlider');
@@ -299,7 +299,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const pitchValue = parseInt(this.value);
     shifter.pitch = pitchValue; // Update the Tone.js pitch shift
     pitchDisplay.textContent = `Pitch: ${pitchValue}`; // Update the <p> text content
-   // console.log("Pitch adjusted to:", value);
   });
 
   const distortionSlider = document.getElementById('distortionSlider');
@@ -309,8 +308,36 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const distortionValue = parseFloat(this.value);
     distortion.distortion =distortionValue; // Update the Tone.js pitch shift
     distortionDisplay.textContent = `Distortion: ${distortionValue}`; // Update the <p> text content
-   console.log("Distortion adjusted to:", distortionValue);
   });
+
+  const loopStartSlider = document.getElementById('loopStartSlider');
+  const loopStartDisplay = document.getElementById('loopStartValue'); // Get the <p> element
+
+  loopStartSlider.addEventListener('input', function() {
+    const loopStartValue = parseInt(this.value);
+    player.loopStart =loopStartValue; // Update the Tone.js pitch shift
+    loopStartDisplay.textContent = `Loop Start: ${loopStartValue}`; // Update the <p> text content
+  });
+
+  const loopEndSlider = document.getElementById('loopEndSlider');
+  const loopEndDisplay = document.getElementById('loopEndValue'); // Get the <p> element
+
+  loopEndSlider.addEventListener('input', function() {
+    const loopEndValue = parseInt(this.value);
+    player.loopEnd =loopEndValue/500*player.buffer.duration; // Update the Tone.js pitch shift
+    console.log("player loop end is ",player.loopEnd, player.buffer.duration);
+    loopEndDisplay.textContent = `Loop End: ${loopEndValue}`; // Update the <p> text content
+  });
+
+  const cutoffFreqSlider = document.getElementById('cutoffFreqSlider');
+  const cutoffFreqDisplay = document.getElementById('cutoffFreqValue'); // Get the <p> element
+
+  cutoffFreqSlider.addEventListener('input', function() {
+    const cutoffFreqValue = parseInt(this.value);
+    player.cutoffFreq =cutoffFreqValue; // Update the Tone.js pitch shift
+    cutoffFreqDisplay.textContent = `cutoffFreq: ${cutoffFreqValue}`; // Update the <p> text content
+  });
+
 });
 
 function createUI() {
@@ -343,15 +370,15 @@ function createUI() {
 
 
 
-  loopStartSlider = createSlider(0, 100, 1, 10);
-  loopStartSlider.style("width", "200px");
-  loopEndSlider = createSlider(0, 500, 0, 10);
-  loopEndSlider.style("width", "200px");
+  // loopStartSlider = createSlider(0, 100, 1, 10);
+  // loopStartSlider.style("width", "200px");
+  // loopEndSlider = createSlider(0, 500, 0, 10);
+  // loopEndSlider.style("width", "200px");
   // distortionSlider = createSlider(0, 1, 0, 0);
   // distortionSlider.style("width", "200px");
   // cutoffFreqSlider = createSlider(0, 10000, 0, 100);
-  cutoffFreqSlider.style("width", "200px");
-  updateUI(heightOffset);
+ // cutoffFreqSlider.style("width", "200px");
+  //updateUI(heightOffset);
 
 }
 
@@ -377,9 +404,13 @@ function usIsPressed() {
 
 /*Avoiding putting any sound triggering functions in draw() for this example
  */
+
+state = "sun";
 function draw() {
 
-  // background(0);
+  background(0);
+  let x = (frameCount % width);
+  ellipse(x, height / 2, 40, 40); // Moving circle
   // fill(220); // Set text color
   // textSize(16); // Set text size
   // text("Your slider text", 500, 500); // Draw the text after clearing the background
@@ -387,36 +418,36 @@ function draw() {
   // // console.log( "player duration ",player.duration);
 
   // // if choose webcam 
-  // if (state == "us") {
-  //   loopStartSlider.hide();
-  //   loopEndSlider.hide();
-  //   shiftSlider.hide();
-  //   distortionSlider.hide();
-  //   cutoffFreqSlider.hide();
+  if (state == "us") {
+    loopStartSlider.hide();
+    loopEndSlider.hide();
+    shiftSlider.hide();
+    distortionSlider.hide();
+    cutoffFreqSlider.hide();
 
-  //   push();
-  //   translate(width, 0);
-  //   scale(-1, 1);
-  //   image(video, width / 8 * 7, 0, width / 8, width / 8 / 16 * 9); //video on canvas, position, dimensions
-  //   pop();
+    push();
+    translate(width, 0);
+    scale(-1, 1);
+    image(video, width / 8 * 7, 0, width / 8, width / 8 / 16 * 9); //video on canvas, position, dimensions
+    pop();
 
-  //   drawKeypoints();
-  //   noStroke();
+    drawKeypoints();
+    noStroke();
 
-  //   push();
-  //   ellipse(noseX, noseY, 10, 10);
-  //   fill(249, 215, 28);
-  //   ellipse(leftWristX, leftWristY, 10, 10);
-  //   ellipse(rightWristX, rightWristY, 10, 10);
-  //   pop();
+    push();
+    ellipse(noseX, noseY, 10, 10);
+    fill(249, 215, 28);
+    ellipse(leftWristX, leftWristY, 10, 10);
+    ellipse(rightWristX, rightWristY, 10, 10);
+    pop();
 
-  //   loopStart = map(leftWristX, 0, width, 0, 50);
-  //   loopEnd = map(rightWristX, width, 0, 0, 500);
-  //   shifter.pitch = map(rightWristY, 0, height, -12, 12);
-  //   cutoffFreq = map(noseY, 0, height, 1000, 100);
-  //   distortionEffect = map(noseX, 0, width, 1, 0);
+    loopStart = map(leftWristX, 0, width, 0, 50);
+    loopEnd = map(rightWristX, width, 0, 0, 500);
+    shifter.pitch = map(rightWristY, 0, height, -12, 12);
+    cutoffFreq = map(noseY, 0, height, 1000, 100);
+    distortionEffect = map(noseX, 0, width, 1, 0);
 
-  // }
+  }
   // //if choose no webcam
   // else {
 
@@ -473,7 +504,7 @@ function draw() {
   //assign individual values to player to update 
  // distortion.distortion = distortionEffect;
  // filter.cutoff = cuoffFreq;
- // info(heightOffset);
+  info(heightOffset);
 }
 
 function getRandomInt(max) {
@@ -564,11 +595,11 @@ function getVector(index, total) {
 function wobble(x, y, a, b) {
   //with slider 
   if (state == "sun") {
-    distortionLevel = map(distortionEffect, 0, 1, 1, 20);
+    distortionLevel = map(distortion.distortion, 0, 1, 1, 20);
     total = map(shifter.pitch, -12, 12, 10, 150);
     loopRange = loopEnd - loopStart;
     loopLevel = map(loopRange, 0, loopEnd + loopStart, 1, 10);
-    cutoffLevel = map(cutoffFreq, 0, 10000, 1, 5);
+    cutoffLevel = map(player.cutoffFreq, 0, 10000, 1, 5);
   }
 
   if (state == "us") {
@@ -577,7 +608,7 @@ function wobble(x, y, a, b) {
     total = map(noseY, 0, height, 10, 150);
     loopRange = loopEnd - loopStart;
     loopLevel = map(loopRange, 0, width, 1, 10);
-    cutoffLevel = map(cutoffFreq, 0, 10000, 1, 5);
+    cutoffLevel = map(player.cutoffFreq, 0, 10000, 1, 5);
 
   }
 

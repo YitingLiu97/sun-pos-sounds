@@ -7,6 +7,22 @@ html, body {
   overflow: none;
 }
 
+#controlContainer {
+  position: fixed; /* Or 'fixed' depending on your needs */
+  top: 10px; /* Adjust as needed */
+  left: 10px; /* Adjust as needed */
+  z-index: 100; /* Ensures it sits above the canvas layer */
+  background: rgba(255, 255, 255, 0.1); /* Semi-transparent white background */
+  padding: 10px;
+  border-radius: 8px;
+  z-index: 1;
+  width: 80%;
+  height: 80%;
+  align-self: center;
+  align-items: center;
+  /* Additional styling as desired */
+}
+
 body::-webkit-scrollbar{
   display: none;
 }
@@ -42,6 +58,8 @@ body::-webkit-scrollbar{
 #sketchDiv{
   width: 100%;
   height: 100%;
+  position: absolute; /* Ensure this is positioned relatively if it needs to contain absolutely positioned children */
+
 }
 /* Example Media Query */
 @media (max-width: 768px) {

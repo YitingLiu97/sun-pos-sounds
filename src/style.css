@@ -1,87 +1,114 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   font-family: Arial, Helvetica, sans-serif;
   -ms-overflow-style: none;
   scrollbar-width: none;
   overflow: none;
+  background: rgba(255, 138, 138, 0.093);
+  display: flex;
+  flex-direction: column;
+}
+
+footer {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%, 0);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 95%;
+  color: white;
+  text-align: center;
+  min-height: 50px;
+  /* Footer height */
+  line-height: 20px;
+  /* Center text vertically */
+  font-size: small;
+
+}
+
+.UI-Container {
+  position: fixed;
+  top: 50%;
+  /* Center vertically */
+  left: 50%;
+  /* Center horizontally */
+  transform: translate(-50%, -50%);
+  /* Adjust position to truly center the div */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Centers children vertically inside the container */
+  align-items: center;
+  /* Centers children horizontally inside the container */
+  width: 50%;
+  /* Adjust width as needed */
+  min-height: 100px;
+  /* Adjust height as needed */
+  background: rgba(216, 216, 216, 0.8);
+  /* Adjust background transparency as needed */
+  color: white;
+  padding: 20px;
+  /* Add padding inside the container */
 }
 
 #controlContainer {
-  position: fixed; /* Or 'fixed' depending on your needs */
-  top: 10px; /* Adjust as needed */
-  left: 10px; /* Adjust as needed */
-  z-index: 100; /* Ensures it sits above the canvas layer */
-  background: rgba(255, 255, 255, 0.1); /* Semi-transparent white background */
-  padding: 10px;
-  border-radius: 8px;
-  z-index: 1;
-  width: 50%;
-  height: 50%;
-  align-self: center;
-  align-items: center;
-  /* Additional styling as desired */
-}
-
-body::-webkit-scrollbar{
-  display: none;
-}
-.container {
-  display: flex;
-  flex-direction: column;
-  /* Stack children vertically */
-  height: 100%;
-}
-
-.box {
-  flex: 1;
-  /* Each child will take up an equal amount of space */
+  position: fixed;
   display: flex;
   justify-content: center;
-  /* Center content horizontally */
+  /* Horizontally center content */
   align-items: center;
-  /* Center content vertically */
-  text-align: center;
-}
-
-.top {
-  background-color: black;
-  /* Just for visual differentiation */
-}
-
-.bottom {
-  font-size: small;
-  color: white;
-  background-color: black;
-  /* Just for visual differentiation */
-}
-#sketchDiv{
+  /* Vertically center content */
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  padding: 10px;
+  border-radius: 8px;
   width: 100%;
-  height: 100%;
-  position: absolute; /* Ensure this is positioned relatively if it needs to contain absolutely positioned children */
+  /* height: 50%; */
+  color: red;
 
 }
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+
+
+#sketchDiv {
+  width: 100%;
+  min-height: 100vh-50px;
+}
+
 /* Example Media Query */
 @media (max-width: 768px) {
-  #sketchDiv {
-  }
+  #sketchDiv {}
 }
-#info>div{
+
+#info>div {
   display: flex;
-  flex-flow: row nowrap;
+  /* flex-flow: row nowrap; */
   /* justify-content: space-evenly;
   align-items: center;
   align-content: baseline; */
 }
+
 /* slider */
 input[type=range] {
   -webkit-appearance: none;
   margin: 10px 0;
   width: 100%;
 }
+
 input[type=range]:focus {
   outline: none;
 }
+
 input[type=range]::-webkit-slider-runnable-track {
   width: 100%;
   height: 9px;
@@ -92,6 +119,7 @@ input[type=range]::-webkit-slider-runnable-track {
   border-radius: 0px;
   border: 1px solid #000000;
 }
+
 input[type=range]::-webkit-slider-thumb {
   box-shadow: 1px 1px 1px #fdfdfd;
   border: 1px solid #ffffff;
@@ -103,9 +131,11 @@ input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
   margin-top: -3px;
 }
+
 input[type=range]:focus::-webkit-slider-runnable-track {
   background: #ffffff;
 }
+
 input[type=range]::-moz-range-track {
   width: 100%;
   height: 9px;
@@ -116,6 +146,7 @@ input[type=range]::-moz-range-track {
   border-radius: 0px;
   border: 1px solid #000000;
 }
+
 input[type=range]::-moz-range-thumb {
   box-shadow: 1px 1px 1px #fdfdfd;
   border: 1px solid #ffffff;
@@ -125,6 +156,7 @@ input[type=range]::-moz-range-thumb {
   background: #000000;
   cursor: pointer;
 }
+
 input[type=range]::-ms-track {
   width: 100%;
   height: 10px;
@@ -134,18 +166,21 @@ input[type=range]::-ms-track {
   border-color: transparent;
   color: transparent;
 }
+
 input[type=range]::-ms-fill-lower {
   background: #ffffff;
   border: 1px solid #000000;
   border-radius: 0px;
   box-shadow: 0px 0px 0px #ffffff;
 }
+
 input[type=range]::-ms-fill-upper {
   background: #ffffff;
   border: 1px solid #000000;
   border-radius: 0px;
   box-shadow: 0px 0px 0px #ffffff;
 }
+
 input[type=range]::-ms-thumb {
   box-shadow: 1px 1px 1px #fdfdfd;
   border: 1px solid #ffffff;
@@ -155,51 +190,57 @@ input[type=range]::-ms-thumb {
   background: #000000;
   cursor: pointer;
 }
+
 input[type=range]:focus::-ms-fill-lower {
   background: #ffffff;
 }
+
 input[type=range]:focus::-ms-fill-upper {
   background: #ffffff;
 }
-input[type=range]:active::-webkit-slider-thumb{
-   background-color:white;
-   border: black 1pt double;
-  } 
+
+input[type=range]:active::-webkit-slider-thumb {
+  background-color: white;
+  border: black 1pt double;
+}
+
 /* button */
 button {
-	box-shadow:inset 0px 1px 0px 0px #ffffff;
-	background-color:#ffffff;
-	border-radius:6px;
-	border:1px solid #dcdcdc;
-	display:inline-block;
-	cursor:pointer;
-	color:#666666;
-	font-family:Arial;
-	font-size:15px;
-	font-weight:bold;
-	padding:6px 24px;
-	text-decoration:none;
-	text-shadow:0px 1px 0px #ffffff;
+  box-shadow: inset 0px 1px 0px 0px #ffffff;
+  background-color: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #dcdcdc;
+  display: inline-block;
+  cursor: pointer;
+  color: #666666;
+  font-family: Arial;
+  font-size: 15px;
+  font-weight: bold;
+  padding: 6px 24px;
+  text-decoration: none;
+  text-shadow: 0px 1px 0px #ffffff;
 }
+
 button:hover {
-  background-color:black;
+  background-color: black;
   color: white;
 }
+
 button:active {
-	position:relative;
-  top:1px;
-  background-color:black;
+  position: relative;
+  top: 1px;
+  background-color: black;
   color: white;
 }
 
 
 
-#about{
+#about {
   z-index: 10;
   /* left: 0; */
   right: 0;
   top: 0;
-    text-align: right;
+  text-align: right;
   position: absolute;
   color: white;
   width: auto;
@@ -209,7 +250,7 @@ button:active {
   cursor: pointer;
 }
 
-#showAbout{
+#showAbout {
   display: none;
   z-index: 10;
   /* left: 0; */
@@ -222,15 +263,14 @@ button:active {
   border: 1pt white double;
   opacity: 0.8;
   width: 300px;
-  padding:  20px;
+  padding: 20px;
   height: auto;
 }
 
-a{
- /* background-color: white; */
- color: white;
- text-decoration: underline;
- text-underline-offset: 2px;
+a {
+  /* background-color: white; */
+  color: white;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 
 }
-

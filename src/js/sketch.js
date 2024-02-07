@@ -291,12 +291,46 @@ function updateUI(heightOffset) {
   cutoffFreqSlider.position(width / 2 - 100, height / 2 + startingPoint + spacing * 5 - heightOffset);
 }
 
+document.addEventListener('DOMContentLoaded', (event) => {
+  const pitchSlider = document.getElementById('pitchSlider');
+  const pitchDisplay = document.getElementById('pitchValue'); // Get the <p> element
+
+  pitchSlider.addEventListener('input', function() {
+    const pitchValue = parseInt(this.value);
+    shifter.pitch = pitchValue; // Update the Tone.js pitch shift
+    pitchDisplay.textContent = `Pitch: ${pitchValue}`; // Update the <p> text content
+   // console.log("Pitch adjusted to:", value);
+  });
+
+  const distortionSlider = document.getElementById('distortionSlider');
+  const distortionDisplay = document.getElementById('distortionValue'); // Get the <p> element
+
+  distortionSlider.addEventListener('input', function() {
+    const distortionValue = parseFloat(this.value);
+    distortion.distortion =distortionValue; // Update the Tone.js pitch shift
+    distortionDisplay.textContent = `Distortion: ${distortionValue}`; // Update the <p> text content
+   console.log("Distortion adjusted to:", distortionValue);
+  });
+});
+
 function createUI() {
 
-  buttonSun = createButton("Sun");
-  buttonUs = createButton("US");
-  shiftSlider = createSlider(-12, 12, -12, 1);
-  shiftSlider.style("width", "200px");
+  // buttonSun = createButton("Sun");
+  // buttonUs = createButton("US");
+
+    // Access the slider and add an event listener to adjust pitch
+    // const pitchSlider = document.getElementById('pitchSlider');
+    // const picthP = document.getElementById('pitch').firstChild;
+    // pitchSlider.addEventListener('input', function() {
+    //   const pitchValue = parseInt(this.value);
+    //   shifter.pitch = pitchValue;
+    //   picthP.text="Pitch:"+pitchValue;
+    //   console.log("Pitch adjusted to:", pitchValue);
+    // });
+
+    
+  // shiftSlider = createSlider(-12, 12, -12, 1);
+  // shiftSlider.style("width", "200px");
 
   // // Create an HTML element to display the slider value
   // let sliderValueDisplay = createDiv('Pitch: ' + shiftSlider.value() + ' Half Steps');
@@ -313,9 +347,9 @@ function createUI() {
   loopStartSlider.style("width", "200px");
   loopEndSlider = createSlider(0, 500, 0, 10);
   loopEndSlider.style("width", "200px");
-  distortionSlider = createSlider(0, 1, 0, 0);
-  distortionSlider.style("width", "200px");
-  cutoffFreqSlider = createSlider(0, 10000, 0, 100);
+  // distortionSlider = createSlider(0, 1, 0, 0);
+  // distortionSlider.style("width", "200px");
+  // cutoffFreqSlider = createSlider(0, 10000, 0, 100);
   cutoffFreqSlider.style("width", "200px");
   updateUI(heightOffset);
 
@@ -345,68 +379,68 @@ function usIsPressed() {
  */
 function draw() {
 
-  background(0);
-  fill(220); // Set text color
-  textSize(16); // Set text size
-  text("Your slider text", 500, 500); // Draw the text after clearing the background
+  // background(0);
+  // fill(220); // Set text color
+  // textSize(16); // Set text size
+  // text("Your slider text", 500, 500); // Draw the text after clearing the background
 
-  // console.log( "player duration ",player.duration);
+  // // console.log( "player duration ",player.duration);
 
-  // if choose webcam 
-  if (state == "us") {
-    loopStartSlider.hide();
-    loopEndSlider.hide();
-    shiftSlider.hide();
-    distortionSlider.hide();
-    cutoffFreqSlider.hide();
+  // // if choose webcam 
+  // if (state == "us") {
+  //   loopStartSlider.hide();
+  //   loopEndSlider.hide();
+  //   shiftSlider.hide();
+  //   distortionSlider.hide();
+  //   cutoffFreqSlider.hide();
 
-    push();
-    translate(width, 0);
-    scale(-1, 1);
-    image(video, width / 8 * 7, 0, width / 8, width / 8 / 16 * 9); //video on canvas, position, dimensions
-    pop();
+  //   push();
+  //   translate(width, 0);
+  //   scale(-1, 1);
+  //   image(video, width / 8 * 7, 0, width / 8, width / 8 / 16 * 9); //video on canvas, position, dimensions
+  //   pop();
 
-    drawKeypoints();
-    noStroke();
+  //   drawKeypoints();
+  //   noStroke();
 
-    push();
-    ellipse(noseX, noseY, 10, 10);
-    fill(249, 215, 28);
-    ellipse(leftWristX, leftWristY, 10, 10);
-    ellipse(rightWristX, rightWristY, 10, 10);
-    pop();
+  //   push();
+  //   ellipse(noseX, noseY, 10, 10);
+  //   fill(249, 215, 28);
+  //   ellipse(leftWristX, leftWristY, 10, 10);
+  //   ellipse(rightWristX, rightWristY, 10, 10);
+  //   pop();
 
-    loopStart = map(leftWristX, 0, width, 0, 50);
-    loopEnd = map(rightWristX, width, 0, 0, 500);
-    shifter.pitch = map(rightWristY, 0, height, -12, 12);
-    cutoffFreq = map(noseY, 0, height, 1000, 100);
-    distortionEffect = map(noseX, 0, width, 1, 0);
+  //   loopStart = map(leftWristX, 0, width, 0, 50);
+  //   loopEnd = map(rightWristX, width, 0, 0, 500);
+  //   shifter.pitch = map(rightWristY, 0, height, -12, 12);
+  //   cutoffFreq = map(noseY, 0, height, 1000, 100);
+  //   distortionEffect = map(noseX, 0, width, 1, 0);
 
-  }
-  //if choose no webcam
-  else {
+  // }
+  // //if choose no webcam
+  // else {
 
-    loopStartSlider.show();
-    loopEndSlider.show();
-    shiftSlider.show();
-    distortionSlider.show();
-    cutoffFreqSlider.show();
+  //   loopStartSlider.show();
+  //   loopEndSlider.show();
+  //   shiftSlider.show();
+  //   distortionSlider.show();
+  //   cutoffFreqSlider.show();
 
-    shifter.pitch = shiftSlider.value();
-    loopStart = loopStartSlider.value();
-    loopEnd = loopEndSlider.value();
-    cutoffFreq = cutoffFreqSlider.value();
-    distortionEffect = distortionSlider.value();
+  //   shifter.pitch = shiftSlider.value();
+  //   loopStart = loopStartSlider.value();
+  //   loopEnd = loopEndSlider.value();
+  //   cutoffFreq = cutoffFreqSlider.value();
+  //   distortionEffect = distortionSlider.value();
 
-    textAlign('right');
-    fill("white");
-    text("Pitch: " + shiftSlider.value() + " Half Steps", shiftSlider.x + shiftSlider.width, shiftSlider.y - spacing / 5);
-    text("Loop Start: " + int(loopStartSlider.value()), loopStartSlider.x + loopStartSlider.width, loopStartSlider.y - spacing / 5);
-    text("Loop End: " + int(loopEndSlider.value()), loopEndSlider.x + loopEndSlider.width, loopEndSlider.y - spacing / 5);
-    text("Distortion: " + Number(distortionSlider.value().toFixed(2)), distortionSlider.x + distortionSlider.width, distortionSlider.y - spacing / 5);
-    text("Cut Off Frequency: " + int(cutoffFreqSlider.value()), cutoffFreqSlider.x + cutoffFreqSlider.width, cutoffFreqSlider.y - spacing / 5);
+  //   textAlign('right');
+  //   fill("white");
+  //   text("Pitch: " + shiftSlider.value() + " Half Steps", shiftSlider.x + shiftSlider.width, shiftSlider.y - spacing / 5);
+  //   text("Loop Start: " + int(loopStartSlider.value()), loopStartSlider.x + loopStartSlider.width, loopStartSlider.y - spacing / 5);
+  //   text("Loop End: " + int(loopEndSlider.value()), loopEndSlider.x + loopEndSlider.width, loopEndSlider.y - spacing / 5);
+  //   text("Distortion: " + Number(distortionSlider.value().toFixed(2)), distortionSlider.x + distortionSlider.width, distortionSlider.y - spacing / 5);
+  //   text("Cut Off Frequency: " + int(cutoffFreqSlider.value()), cutoffFreqSlider.x + cutoffFreqSlider.width, cutoffFreqSlider.y - spacing / 5);
 
-  }
+  // }
 
   //to autostart 
   player.autostart = true;
@@ -435,11 +469,11 @@ function draw() {
     //  console.log("suntoDur - player duration in else", sunToDur);
   }
 
-  player.volume.value = -12;
+  //player.volume.value = -12;
   //assign individual values to player to update 
-  distortion.distortion = distortionEffect;
-  filter.cutoff = cuoffFreq;
-  info(heightOffset);
+ // distortion.distortion = distortionEffect;
+ // filter.cutoff = cuoffFreq;
+ // info(heightOffset);
 }
 
 function getRandomInt(max) {

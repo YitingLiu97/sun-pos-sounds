@@ -16,8 +16,8 @@ html, body {
   padding: 10px;
   border-radius: 8px;
   z-index: 1;
-  width: 80%;
-  height: 80%;
+  width: 50%;
+  height: 50%;
   align-self: center;
   align-items: center;
   /* Additional styling as desired */

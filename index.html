@@ -55,13 +55,13 @@
         href="https://ipgeolocation.io/documentation/ip-geolocation-api.html">altitude of the sun</a> .</p>
   </div>
 
-  <div class="container">
+  <div class="UI-Container">
     <div class="Button-Container">
-      <button>Sun</button>
-      <button>Us</button>
+      <button id="sunButton">Sun</button>
+      <button id="usButton">Us</button>
     </div>
 
-    <div class="controlContainer">
+    <div id="sunContent" class="controlContainer">
       <div class="slidecontainer" id="pitch">
         <p id="pitchValue">Pitch: 0</p>
         <input type="range" min="-12" max="12" value="-12" step="0.01" id="pitchSlider">
@@ -83,12 +83,24 @@
         <input type="range" min="0" max="10000" value="0" id="cutoffFreqSlider">
       </div>
 
+      
+
+    </div>
+
+    <div id="usContent" class="controlContainer">
+      <p id="usParagraph">With webcam, you can join in the symphony.</p>
+      <!-- <p>Move your head vertically to choose the cut off frequency: </p>
+      <p>Move your right hand vertically to change pitch: </p>
+      <p>Move your left hand to set the loop start point: </p>
+      <p>Move your right hand to set the loop end point:  </p> -->
+
     </div>
   </div>
 
   <div class="container">
     <!-- Sketch Div is only for the visuals -->
     <div id="sketchDiv" class="box top">
+   
     </div>
     <div class="box bottom" id="footer" class="footer"></div>
   </div>

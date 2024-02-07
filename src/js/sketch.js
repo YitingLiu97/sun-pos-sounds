@@ -241,7 +241,7 @@ function setup() {
   video.hide();
 
   //manipulate field recordings 
-  shifter = new Tone.PitchShift();//.toMaster();
+  shifter = new Tone.PitchShift();//.toDestination();
   // console.log("shifter is ", shifter);
   player = new Tone.Player({
     "onload": Tone.noOp,
@@ -270,7 +270,7 @@ function setup() {
   });
 
   //order of the effect matters 
-  player.chain( shifter,distortion, filter, feedbackDelay, Tone.Master);
+  player.chain( shifter,distortion, filter, feedbackDelay, Tone.Destination);
   createUI(heightOffset);
   buttonSun.mousePressed(sunIsPressed);
   buttonUs.mousePressed(usIsPressed);
@@ -297,6 +297,18 @@ function createUI() {
   buttonUs = createButton("US");
   shiftSlider = createSlider(-12, 12, -12, 1);
   shiftSlider.style("width", "200px");
+
+  // // Create an HTML element to display the slider value
+  // let sliderValueDisplay = createDiv('Pitch: ' + shiftSlider.value() + ' Half Steps');
+  // sliderValueDisplay.position(10, 40);
+
+  // // Attach an input listener to the slider to update the display
+  // shiftSlider.input(() => {
+  //     sliderValueDisplay.html('Pitch: ' + shiftSlider.value() + ' Half Steps');
+  // });
+
+
+
   loopStartSlider = createSlider(0, 100, 1, 10);
   loopStartSlider.style("width", "200px");
   loopEndSlider = createSlider(0, 500, 0, 10);

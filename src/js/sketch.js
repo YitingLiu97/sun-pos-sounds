@@ -72,18 +72,16 @@ let sun_altitude_changed = false;
 
 let about = document.getElementById("about");
 let showAbout = document.getElementById("showAbout");
-
 let indexForRadio = 0;
 
 about.addEventListener("click", function () {
   console.log("? clicked")
   if (showAbout.style.display == "none") {
     showAbout.style.display = "block";
-    about.innerHTML = "<h2>✖</h2>";
+    about.innerHTML = "<h2 id='close'>✖</h2>";
   } else {
     showAbout.style.display = "none";
-    about.innerHTML = "<h2>❔</h2>";
-
+   about.innerHTML = "<h2>❔</h2>";
   }
 });
 
@@ -450,13 +448,12 @@ function readResponse(response) {
 //get webcam data to manipulate some thing - simple posenet - add graphics later 
 // would be a symphony of sun and us - sun is always playing in the background; human movement geneerate something else
 function info() {
-  usParagraph.innerHTML = "With webcam, you can join in the symphony. <br>" +
-    "testing stuff" +
-    ` Move your head horizontally to distort the recording:  ${Number(distortion.distortion).toFixed(2)} <br>` +
-    ` Move your head vertically to choose the cut off frequency:  ${Number(player.cutoffFreq).toFixed(2)} <br>` +
-    ` Move your right hand vertically to change pitch: ${Number(shifter.pitch).toFixed(0)} <br>` +
-    ` Move your left hand to set the loop start point: ${Number(player.loopStart).toFixed(0)} <br>` +
-    ` Move your right hand to set the loop end point: ${Number(player.loopEnd).toFixed(0)} <br>`;
+  usParagraph.innerHTML = "With webcam, you can join in the symphony. <br><br>" +
+    ` Move your head horizontally to distort the recording:  ${Number(distortion.distortion).toFixed(2)} <br><br>` +
+    ` Move your head vertically to choose the cut off frequency:  ${Number(player.cutoffFreq).toFixed(2)} <br><br>` +
+    ` Move your right hand vertically to change pitch: ${Number(shifter.pitch).toFixed(0)} <br><br>` +
+    ` Move your left hand to set the loop start point: ${Number(player.loopStart).toFixed(0)} <br><br>` +
+    ` Move your right hand to set the loop end point: ${Number(player.loopEnd).toFixed(0)} <br><br>`;
 }
 
 // simple visuals

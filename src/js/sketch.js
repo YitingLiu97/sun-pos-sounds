@@ -120,12 +120,12 @@ startButton.addEventListener('click', function () {
 
 about.addEventListener("click", function () {
   console.log("? clicked")
-  if (showAbout.style.display == "none") {
-    showAbout.style.display = "block";
-    about.innerHTML = "<h2>❔</h2>";
-
-  } else {
+  if (showAbout.style.display == "block") {
     showAbout.style.display = "none";
+    about.innerHTML = "<h2>❔</h2>";
+  } else {
+  
+    showAbout.style.display = "block";
     about.innerHTML = "<h2 id='close'>✖</h2>";
 
   }

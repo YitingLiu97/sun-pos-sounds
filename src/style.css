@@ -131,9 +131,9 @@ footer {
 }
 
 #startButton{
-  pointer-events: none; /* Disables click events */
+  pointer-events: none; 
+  /* Disables click events */
   opacity: 0.5; /* Makes the button appear faded, indicating it's not active */
-
 }
 
 

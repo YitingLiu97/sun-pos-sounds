@@ -120,7 +120,8 @@ document.getElementById("sketchDiv").addEventListener('click', () => {
 
 function preload() {
 
-  issPath = "https://api.wheretheiss.at/v1/satellites/25544";
+
+   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=b83a03b773884e748b520602f359e4b8";
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
 
@@ -228,22 +229,21 @@ function adjustFooter() {
 }
 function initializeCamera() {
 
+  console.log("initialize camera");
   video = createCapture(VIDEO);
   video.size(width, height);
   //single detection for now 
   poseNet = ml5.poseNet(video, {
     flipHorizontal: true
   }, modelReady);
+  console.log("video", video);
 
   poseNet.on('pose', function (results) {
     poses = results;
   });
   // Hide the video element, and just show the canvas
   video.hide();
-  
-
 }
-
 
 function SetupAudioPlayer() {
   shifter = new Tone.PitchShift();
@@ -272,14 +272,12 @@ function SetupAudioPlayer() {
   });
 
   player.volume.value = -Infinity; // Mute
-
   //order of the effect matters 
   player.chain(shifter, distortion, filter, feedbackDelay, Tone.Destination);
 
 }
 
 function unmutePlayer() {
-
   if (player == null)
     return;
   console.log("unmute player");
@@ -290,19 +288,16 @@ function unmutePlayer() {
 function setup() {
 
   background(200);
-
-  const startBtn = document.getElementById('startButton');
-  startBtn.style.pointerEvents = 'auto';
-  startBtn.style.opacity = '1';
-
   r = width / 2 - 200;
   bgCanvas = createCanvas(windowWidth, windowHeight);
   bgCanvas.id = "bgCanvas";
   bgCanvas.parent("sketchDiv");
 
   initializeCamera();
-  //manipulate field recordings 
   SetupAudioPlayer();
+  const startBtn = document.getElementById('startButton');
+  startBtn.style.pointerEvents = 'auto';
+  startBtn.style.opacity = '1';
 
 }
 
@@ -313,7 +308,6 @@ function setup() {
 // play default audio - done 
 
 document.addEventListener('DOMContentLoaded', (event) => {
-
   // load default json 
   GetAudioFromDefaultJson();
 
@@ -380,9 +374,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
   const cutoffFreqDisplay = document.getElementById('cutoffFreqValue'); // Get the <p> element
 
   cutoffFreqSlider.addEventListener('input', function () {
-    const cutoffFreqValue = parseInt(this.value);
+    const cutoffFreqValue = parseFloat(this.value);
     player.cutoffFreq = cutoffFreqValue; // Update the Tone.js pitch shift
-    cutoffFreqDisplay.textContent = `cutoffFreq: ${cutoffFreqValue}`; // Update the <p> text content
+    cutoffFreqDisplay.textContent = `Cutoff Freq: ${cutoffFreqValue}`; // Update the <p> text content
   });
 
 });
@@ -391,7 +385,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
 function draw() {
 
   background(0);
-  if (state == "us") {
+
+  if (state == "us" && isModelReady) {
     push();
     translate(width, 0);
     scale(-1, 1);
@@ -401,25 +396,38 @@ function draw() {
     drawKeypoints();
     noStroke();
 
-    push();
-    ellipse(noseX, noseY, 10, 10);
-    fill(249, 215, 28);
-    ellipse(leftWristX, leftWristY, 10, 10);
-    ellipse(rightWristX, rightWristY, 10, 10);
-    pop();
+    if (poses.length > 0) {
+      push();
+      ellipse(noseX, noseY, 10, 10);
+      fill(249, 215, 28);
+      ellipse(leftWristX, leftWristY, 10, 10);
+      ellipse(rightWristX, rightWristY, 10, 10);
+      pop();
 
-    if (player == null)
-      return;
-    player.loopStart = map(leftWristX, 0, width, 0, 50);
-    player.loopEnd = map(rightWristX, width, 0, 0, 500) / 500 * player.buffer.duration;
-    shifter.pitch = map(rightWristY, 0, height, -12, 12);
-    player.cutoffFreq = map(noseY, 0, height, 1000, 100);
-    distortion.distortion = map(noseX, 0, width, 1, 0);
+      if (player == null)
+        return;
+      // Validate and set loopStart
+      let loopStartValue = map(leftWristX, 0, width, 0, 50); // Example mapping function
+      if (!isFinite(loopStartValue) || loopStartValue < 0) {
+        loopStartValue = 0; // Default to 0 if non-finite or negative
+      } else if (loopStartValue > player.buffer.duration) {
+        loopStartValue = player.buffer.duration; // Clamp to buffer duration
+      }
+      player.loopStart = loopStartValue;
+      // Validate and set loopEnd
+      let loopEndValue = map(rightWristX, 0, width, 0, player.buffer.duration); // Adjusted mapping
+      if (!isFinite(loopEndValue) || loopEndValue < 0) {
+        loopEndValue = player.buffer.duration; // Default to buffer duration if non-finite or negative
+      } else if (loopEndValue > player.buffer.duration) {
+        loopEndValue = player.buffer.duration; // Clamp to buffer duration
+      }
+      player.loopEnd = loopEndValue; 
+      shifter.pitch = rightWristY==null? map(noseX, 0, height, -12, 12): map(rightWristY, 0, height, -12, 12);
+      player.cutoffFreq = map(noseY, 0, height, 1000, 100);
+      distortion.distortion = map(noseX, 0, width, 1, 0);
 
-    if (toMute) {
-
+      info();
     }
-    info();
   }
 
   push();
@@ -432,7 +440,6 @@ function draw() {
 
   }
   pop();
-
   //map the sun altitude to set the duration time 
   if (sun_altitude_changed) {
     sunToDur = map(sun_altitude, -90, 90, 1, 400);
@@ -509,20 +516,23 @@ function wobble(x, y, a, b) {
   if (state == "sun") {
     distortionLevel = map(distortion.distortion, 0, 1, 1, 20);
     total = map(shifter.pitch, -12, 12, 10, 150);
-    loopRange = loopEnd - loopStart;
-    loopLevel = map(loopRange, 0, loopEnd + loopStart, 1, 10);
+    loopRange = player.loopEnd - player.loopStart;
+    loopLevel = map(loopRange, 0, player.loopEnd + player.loopStart, 1, 10);
     cutoffLevel = map(player.cutoffFreq, 0, 10000, 1, 5);
   }
 
   if (state == "us") {
+
+    if(noseX && noseY){
     //with posenet 
     distortionLevel = map(noseX, 0, width, 1, 10);
     total = map(noseY, 0, height, 10, 150);
-    loopRange = loopEnd - loopStart;
+    loopRange = rightWristX - leftWristX;
     loopLevel = map(loopRange, 0, width, 1, 10);
-    cutoffLevel = map(player.cutoffFreq, 0, 10000, 1, 5);
+    cutoffLevel = map(rightWristX, 0, 10000, 1, 5);
 
   }
+}
 
   zoff += 0.5;
   if (zoff > 2) {
@@ -533,7 +543,6 @@ function wobble(x, y, a, b) {
   y += random(-1 * zoff, 1 * zoff);
   a += random(-2 * zoff, 2 * zoff);
   b += random(-5 * zoff, 5 * zoff);
-
   // let col; //create gradient color 
 
   stroke("white");
@@ -554,29 +563,26 @@ function wobble(x, y, a, b) {
 
 }
 
-
+let isModelReady = false;
 function modelReady() {
   console.log('Model Loaded and Update Audio Effects');
   info();
-
+  isModelReady = true;
 }
-
 function drawKeypoints() {
   for (let i = 0; i < poses.length; i++) {
+
     let pose = poses[i].pose;
     for (let j = 0; j < pose.keypoints.length; j++) {
       let keypoint = pose.keypoints[j];
-
       if (keypoint.score > 0.9) {
-        if (keypoint.part = 'nose') {
+        if (keypoint.part === 'nose') {
           noseX = keypoint.position.x;
           noseY = keypoint.position.y;
-        }
-        if (keypoint.part = 'leftWrist') {
+        } if (keypoint.part === 'leftWrist') {
           leftWristX = keypoint.position.x;
           leftWristY = keypoint.position.y;
-        }
-        if (keypoint.part = 'rightWrist') {
+        } if (keypoint.part === 'rightWrist') {
           rightWristX = keypoint.position.x;
           rightWristY = keypoint.position.y;
         }

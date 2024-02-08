@@ -42,6 +42,7 @@ footer {
   cursor: pointer;
   color: gray;
   opacity: 0.5;
+  filter: invert(100%);
 
 }
 

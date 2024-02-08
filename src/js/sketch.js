@@ -52,7 +52,6 @@ let recdate;
 let infoString;
 let duration;
 const proxy = "https://mighty-shelf-54274-3fd4a254a0a2.herokuapp.com/";
-//const proxy = 'https://cors-anywhere.herokuapp.com/'; // use netlify to host and check 
 
 let video;
 let poseNet;
@@ -78,27 +77,46 @@ let usButton = document.getElementById('usButton');
 let indexForRadio = 0;
 let usParagraph;// to update texts 
 let defaultJson;
+let soundSetting = document.getElementById('soundSetting');
+let muteImg = document.getElementById('mute');
+let unmuteImg = document.getElementById('unmute');
 
+soundSetting.addEventListener('click', function () {
+  console.log('sound setting clicked');
+  if (player == null)
+    return;
+
+  if (player.volume.value === -Infinity) {
+    console.log("unmute");
+    muteImg.src = "./assets/volume-up-solid.svg";
+
+    unmutePlayer();
+  } else {
+    console.log("mute");
+
+    muteImg.src = "./assets/volume-mute-solid.svg";
+
+    mutePlayer();
+  }
+
+});
 let sliderControl = document.getElementById("sliderControl");
 let intro = document.getElementById("intro");
+
 let startButton = document.getElementById('startButton');
 
-let toMute = true; // mute audio until startButton is pressed 
 startButton.addEventListener('click', function () {
   unmutePlayer();
   console.log("intro button clicked")
   if (intro.style.display == "none") {
-    toMute = true;
     sliderControl.style.display = "none";
     intro.style.display = "flex";
-
   } else {
-    toMute = false;
     sliderControl.style.display = "flex";
     intro.style.display = "none";
-
   }
 });
+
 
 about.addEventListener("click", function () {
   console.log("? clicked")
@@ -121,7 +139,7 @@ document.getElementById("sketchDiv").addEventListener('click', () => {
 function preload() {
 
 
-   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
+  issPath = "https://api.wheretheiss.at/v1/satellites/25544";
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=b83a03b773884e748b520602f359e4b8";
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
 
@@ -228,7 +246,6 @@ function adjustFooter() {
   footer.innerHTML = infoString;
 }
 function initializeCamera() {
-
   console.log("initialize camera");
   video = createCapture(VIDEO);
   video.size(width, height);
@@ -236,7 +253,6 @@ function initializeCamera() {
   poseNet = ml5.poseNet(video, {
     flipHorizontal: true
   }, modelReady);
-  console.log("video", video);
 
   poseNet.on('pose', function (results) {
     poses = results;
@@ -271,8 +287,7 @@ function SetupAudioPlayer() {
     "distortion": distortionEffect,
   });
 
-  player.volume.value = -Infinity; // Mute
-  //order of the effect matters 
+  mutePlayer();  //order of the effect matters 
   player.chain(shifter, distortion, filter, feedbackDelay, Tone.Destination);
 
 }
@@ -282,9 +297,14 @@ function unmutePlayer() {
     return;
   console.log("unmute player");
   player.volume.value = -12; // Set volume to default level, or any desired level
+}
+function mutePlayer() {
+  if (player == null)
+    return;
+  console.log("mute player");
+  player.volume.value = -Infinity; // Set volume to default level, or any desired level
 
 }
-
 function setup() {
 
   background(200);
@@ -421,8 +441,8 @@ function draw() {
       } else if (loopEndValue > player.buffer.duration) {
         loopEndValue = player.buffer.duration; // Clamp to buffer duration
       }
-      player.loopEnd = loopEndValue; 
-      shifter.pitch = rightWristY==null? map(noseX, 0, height, -12, 12): map(rightWristY, 0, height, -12, 12);
+      player.loopEnd = loopEndValue;
+      shifter.pitch = rightWristY == null ? map(noseX, 0, height, -12, 12) : map(rightWristY, 0, height, -12, 12);
       player.cutoffFreq = map(noseY, 0, height, 1000, 100);
       distortion.distortion = map(noseX, 0, width, 1, 0);
 
@@ -523,16 +543,16 @@ function wobble(x, y, a, b) {
 
   if (state == "us") {
 
-    if(noseX && noseY){
-    //with posenet 
-    distortionLevel = map(noseX, 0, width, 1, 10);
-    total = map(noseY, 0, height, 10, 150);
-    loopRange = rightWristX - leftWristX;
-    loopLevel = map(loopRange, 0, width, 1, 10);
-    cutoffLevel = map(rightWristX, 0, 10000, 1, 5);
+    if (noseX && noseY) {
+      //with posenet 
+      distortionLevel = map(noseX, 0, width, 1, 10);
+      total = map(noseY, 0, height, 10, 150);
+      loopRange = rightWristX - leftWristX;
+      loopLevel = map(loopRange, 0, width, 1, 10);
+      cutoffLevel = map(rightWristX, 0, 10000, 1, 5);
 
+    }
   }
-}
 
   zoff += 0.5;
   if (zoff > 2) {

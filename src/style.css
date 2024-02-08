@@ -29,6 +29,22 @@ footer {
 
 }
 
+#soundSetting{
+  right: 25px;
+  top:0;
+  padding: 10px;
+  padding-top: 25px;
+  position: absolute;
+  width: 25px;
+  height: auto;
+  position: absolute;
+  display: block;
+  cursor: pointer;
+  color: gray;
+  opacity: 0.5;
+
+}
+
 #intro {
   background: black;
   width: 100%;

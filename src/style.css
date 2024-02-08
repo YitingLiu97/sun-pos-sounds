@@ -105,7 +105,6 @@ footer {
   from {
     width: 0
   }
-
   to {
     width: 100%
   }
@@ -118,12 +117,10 @@ footer {
   to {
     border-color: transparent
   }
-
   50% {
     border-color: black;
   }
 }
-
 
 .UI-Container {
   position: fixed;
@@ -152,8 +149,6 @@ footer {
   /* Disables click events */
   opacity: 0.5; /* Makes the button appear faded, indicating it's not active */
 }
-
-
 
 .Button-Container button {
   width: 100px;
@@ -377,7 +372,7 @@ button:active {
 
 /* called in js */
 #close {
-  padding: 0 0.01%;
+  padding: 0 5px;
 }
 
 a {

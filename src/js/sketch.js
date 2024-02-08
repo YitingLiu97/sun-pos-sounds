@@ -122,10 +122,12 @@ about.addEventListener("click", function () {
   console.log("? clicked")
   if (showAbout.style.display == "none") {
     showAbout.style.display = "block";
-    about.innerHTML = "<h2 id='close'>✖</h2>";
+    about.innerHTML = "<h2>❔</h2>";
+
   } else {
     showAbout.style.display = "none";
-    about.innerHTML = "<h2>❔</h2>";
+    about.innerHTML = "<h2 id='close'>✖</h2>";
+
   }
 });
 
@@ -396,7 +398,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
   cutoffFreqSlider.addEventListener('input', function () {
     const cutoffFreqValue = parseFloat(this.value);
     player.cutoffFreq = cutoffFreqValue; // Update the Tone.js pitch shift
-    cutoffFreqDisplay.textContent = `Cutoff Freq: ${cutoffFreqValue}`; // Update the <p> text content
+    cutoffFreqDisplay.textContent = `Cutoff Frequency: ${cutoffFreqValue}`; // Update the <p> text content
   });
 
 });

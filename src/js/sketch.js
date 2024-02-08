@@ -80,21 +80,22 @@ let usParagraph;// to update texts
 let defaultJson;
 
 let sliderControl = document.getElementById("sliderControl");
-let intro=document.getElementById("intro");
+let intro = document.getElementById("intro");
 let startButton = document.getElementById('startButton');
 
-startButton.addEventListener('click',function(){
-
+let toMute = true; // mute audio until startButton is pressed 
+startButton.addEventListener('click', function () {
+  unmutePlayer();
   console.log("intro button clicked")
-
-  if(intro.style.display=="none"){
-
+  if (intro.style.display == "none") {
+    toMute = true;
     sliderControl.style.display = "none";
-    intro.style.display="flex";
+    intro.style.display = "flex";
 
-  }else{
+  } else {
+    toMute = false;
     sliderControl.style.display = "flex";
-    intro.style.display="none";
+    intro.style.display = "none";
 
   }
 });
@@ -106,7 +107,7 @@ about.addEventListener("click", function () {
     about.innerHTML = "<h2 id='close'>✖</h2>";
   } else {
     showAbout.style.display = "none";
-   about.innerHTML = "<h2>❔</h2>";
+    about.innerHTML = "<h2>❔</h2>";
   }
 });
 
@@ -118,6 +119,7 @@ document.getElementById("sketchDiv").addEventListener('click', () => {
 
 
 function preload() {
+
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=b83a03b773884e748b520602f359e4b8";
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
@@ -143,6 +145,7 @@ function preload() {
   httpDo(issPath, 'GET', readResponseISS);
 
 }
+// once link is fetched, the button is interactable 
 function fetchLink() {
   // fetch the api link 
   fetch(recordingPath, {
@@ -223,8 +226,8 @@ function adjustFooter() {
   infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
   footer.innerHTML = infoString;
 }
-function initializeCamera(){
-  
+function initializeCamera() {
+
   video = createCapture(VIDEO);
   video.size(width, height);
   //single detection for now 
@@ -237,10 +240,12 @@ function initializeCamera(){
   });
   // Hide the video element, and just show the canvas
   video.hide();
+  
 
 }
 
-function SetupAudioPlayer(){
+
+function SetupAudioPlayer() {
   shifter = new Tone.PitchShift();
   player = new Tone.Player({
     "onload": Tone.noOp,
@@ -266,13 +271,31 @@ function SetupAudioPlayer(){
     "distortion": distortionEffect,
   });
 
+  player.volume.value = -Infinity; // Mute
+
   //order of the effect matters 
   player.chain(shifter, distortion, filter, feedbackDelay, Tone.Destination);
-  
+
 }
+
+function unmutePlayer() {
+
+  if (player == null)
+    return;
+  console.log("unmute player");
+  player.volume.value = -12; // Set volume to default level, or any desired level
+
+
+}
+
 function setup() {
 
   background(200);
+
+  const startBtn = document.getElementById('startButton');
+  startBtn.style.pointerEvents = 'auto';
+  startBtn.style.opacity = '1';
+
   r = width / 2 - 200;
   bgCanvas = createCanvas(windowWidth, windowHeight);
   bgCanvas.id = "bgCanvas";
@@ -281,6 +304,7 @@ function setup() {
   initializeCamera();
   //manipulate field recordings 
   SetupAudioPlayer();
+
 }
 
 // when document is loaded 
@@ -394,6 +418,9 @@ function draw() {
     player.cutoffFreq = map(noseY, 0, height, 1000, 100);
     distortion.distortion = map(noseX, 0, width, 1, 0);
 
+    if (toMute) {
+
+    }
     info();
   }
 
@@ -533,6 +560,7 @@ function wobble(x, y, a, b) {
 function modelReady() {
   console.log('Model Loaded and Update Audio Effects');
   info();
+
 }
 
 function drawKeypoints() {

@@ -53,21 +53,35 @@ footer {
   /* Makes the container's width the basis of the animation */
   overflow: hidden;
   height: 100px;
+  width: 100%;
   border-right: .15em solid black;
   /* Simulates the cursor */
-  white-space: text-wrap;
-  /* Ensures text stays in a single line */
+  white-space: pre;
+  text-align: center;
   color: white;
   margin: 50 auto;
-  /* Center the text */
   letter-spacing: .15em;
-
-  /* Adjust spacing between characters */
-  animation:
-    typing 3.5s steps(40, end),
-    /* Adjust 'steps' based on the average character count */
-    blink-caret .75s step-end infinite;
+  animation: typing 3s steps(40, end) forwards,
+               blink-caret .75s step-end infinite;
 }
+.typewriter p:nth-child(2) {
+  display: block;
+
+}
+/* Second paragraph animation delay */
+.typewriter p:nth-child(3) {
+  color: black;   
+  animation-delay: 3s; /* Delays start of the typing effect */
+
+  animation: changeColor 4s ease 4s forwards;
+          
+}
+
+@keyframes changeColor {
+  from { color: black; }
+  to { color: white; }
+}
+
 
 /* Typing animation */
 @keyframes typing {

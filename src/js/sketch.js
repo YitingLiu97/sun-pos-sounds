@@ -285,7 +285,6 @@ function unmutePlayer() {
   console.log("unmute player");
   player.volume.value = -12; // Set volume to default level, or any desired level
 
-
 }
 
 function setup() {
@@ -312,7 +311,6 @@ function setup() {
 // load sliders - done 
 // load default json - done 
 // play default audio - done 
-
 
 document.addEventListener('DOMContentLoaded', (event) => {
 

@@ -154,6 +154,7 @@ function fetchLink() {
     }).catch((error) => {
       // fetch the deafult local json if api does not work 
       defaultLink = GetDefaultAudioLink();
+    
       console.log("api fetch error: ", error);
       player.load(defaultLink);
       return defaultLink;
@@ -172,6 +173,8 @@ function GetDefaultAudioLink() {
   timeZone = defaultJson[indexForRadio].timezone;
   recdate = defaultJson[indexForRadio].recdate;
 
+  lat = float(defaultJson[indexForRadio].lat).toFixed(2);
+  lon = float(defaultJson[indexForRadio].lng).toFixed(2);
   console.log("current recording link is ", recordingLink);
   return recordingLink;
 }

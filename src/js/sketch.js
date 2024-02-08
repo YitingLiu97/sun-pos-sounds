@@ -72,7 +72,12 @@ let sun_altitude_changed = false;
 
 let about = document.getElementById("about");
 let showAbout = document.getElementById("showAbout");
+
+let sunButton = document.getElementById('sunButton');
+let usButton = document.getElementById('usButton');
 let indexForRadio = 0;
+
+
 
 about.addEventListener("click", function () {
   console.log("? clicked")
@@ -87,14 +92,8 @@ about.addEventListener("click", function () {
 
 document.getElementById("sketchDiv").addEventListener('click', () => {
   console.log("should play the audio");
-  //GetDefaultAudioLink(); // This should be an async function if it fetches data
   player.load(GetDefaultAudioLink());
   adjustFooter();
-  // if(shifter.pitch<=-12){
-  //   shifter.pitch=12;
-  // }else{
-  //   shiftSlider.pitch-=1;
-  // }
 });
 
 
@@ -152,7 +151,7 @@ function fetchLink() {
     }).catch((error) => {
       // fetch the deafult local json if api does not work 
       defaultLink = GetDefaultAudioLink();
-    
+
       console.log("api fetch error: ", error);
       player.load(defaultLink);
       return defaultLink;
@@ -280,8 +279,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
   const usContent = document.getElementById('usContent');
   usContent.style.display = 'none';
 
-  const sunButton = document.getElementById('sunButton');
-  const usButton = document.getElementById('usButton');
 
   sunButton.addEventListener('click', function () {
     state = "sun";

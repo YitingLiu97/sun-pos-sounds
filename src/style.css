@@ -29,6 +29,65 @@ footer {
 
 }
 
+#intro {
+  background: black;
+  width: 100%;
+  height: 100%;
+  z-index: 230;
+  text-align: center;
+  justify-content: center;
+  align-content: space-around;
+  position: fixed;
+
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  
+}
+
+.typewriter p {
+  /* Makes the container's width the basis of the animation */
+  overflow: hidden;
+  border-right: .15em solid black;
+  /* Simulates the cursor */
+  white-space: text-wrap;
+  /* Ensures text stays in a single line */
+  color: white;
+  margin: 50 auto;
+  /* Center the text */
+  letter-spacing: .15em;
+  /* Adjust spacing between characters */
+  animation:
+    typing 3.5s steps(40, end),
+    /* Adjust 'steps' based on the average character count */
+    blink-caret .75s step-end infinite;
+}
+
+/* Typing animation */
+@keyframes typing {
+  from {
+    width: 0
+  }
+
+  to {
+    width: 100%
+  }
+}
+
+/* Cursor animations */
+@keyframes blink-caret {
+
+  from,
+  to {
+    border-color: transparent
+  }
+
+  50% {
+    border-color: black;
+  }
+}
+
+
 .UI-Container {
   position: fixed;
   top: 50%;
@@ -39,7 +98,6 @@ footer {
   justify-content: center;
   align-items: center;
   width: 100%;
-  background: rgba(216, 216, 216, 0.8);
   color: white;
 }
 
@@ -52,6 +110,8 @@ footer {
   padding: 20px;
 }
 
+
+
 .Button-Container button {
   width: 100px;
   padding: 5px auto;
@@ -59,6 +119,8 @@ footer {
 
 .controlContainer {
   width: 300px;
+  justify-content: center;
+  align-items: center;
 }
 
 .slidecontainer {
@@ -248,7 +310,7 @@ button:active {
   cursor: pointer;
 }
 
-#about h2:hover{
+#about h2:hover {
   box-shadow: inset 150px 0 0 0 white;
   color: gray;
   transition: color .2s ease-in-out, box-shadow .2s ease-in-out;
@@ -272,7 +334,7 @@ button:active {
 
 /* called in js */
 #close {
-  padding: 0 5px;
+  padding: 0 0.01%;
 }
 
 a {

@@ -76,8 +76,28 @@ let showAbout = document.getElementById("showAbout");
 let sunButton = document.getElementById('sunButton');
 let usButton = document.getElementById('usButton');
 let indexForRadio = 0;
+let usParagraph;// to update texts 
+let defaultJson;
 
+let sliderControl = document.getElementById("sliderControl");
+let intro=document.getElementById("intro");
+let startButton = document.getElementById('startButton');
 
+startButton.addEventListener('click',function(){
+
+  console.log("intro button clicked")
+
+  if(intro.style.display=="none"){
+
+    sliderControl.style.display = "none";
+    intro.style.display="flex";
+
+  }else{
+    sliderControl.style.display = "flex";
+    intro.style.display="none";
+
+  }
+});
 
 about.addEventListener("click", function () {
   console.log("? clicked")
@@ -110,7 +130,6 @@ function preload() {
   fetchLink();
 
   const myHeaders = new Headers();
-
   const myRequest = new Request(recordingPath, {
     method: 'GET',
     headers: myHeaders,
@@ -151,7 +170,6 @@ function fetchLink() {
     }).catch((error) => {
       // fetch the deafult local json if api does not work 
       defaultLink = GetDefaultAudioLink();
-
       console.log("api fetch error: ", error);
       player.load(defaultLink);
       return defaultLink;
@@ -175,7 +193,6 @@ function GetDefaultAudioLink() {
   console.log("current recording link is ", recordingLink);
   return recordingLink;
 }
-let defaultJson;
 // as a fall back method 
 function GetAudioFromDefaultJson() {
   fetch('./src/fallbackLocalData.json')
@@ -198,7 +215,6 @@ function windowResized() {
   } else {
     heightOffset = 100;
   }
-
   info();
 }
 
@@ -207,18 +223,10 @@ function adjustFooter() {
   infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
   footer.innerHTML = infoString;
 }
-
-function setup() {
-
-  background(200);
-  r = width / 2 - 200;
-  bgCanvas = createCanvas(windowWidth, windowHeight);
-  bgCanvas.id = "bgCanvas";
-  bgCanvas.parent("sketchDiv");
-
+function initializeCamera(){
+  
   video = createCapture(VIDEO);
   video.size(width, height);
-
   //single detection for now 
   poseNet = ml5.poseNet(video, {
     flipHorizontal: true
@@ -230,7 +238,9 @@ function setup() {
   // Hide the video element, and just show the canvas
   video.hide();
 
-  //manipulate field recordings 
+}
+
+function SetupAudioPlayer(){
   shifter = new Tone.PitchShift();
   player = new Tone.Player({
     "onload": Tone.noOp,
@@ -258,17 +268,27 @@ function setup() {
 
   //order of the effect matters 
   player.chain(shifter, distortion, filter, feedbackDelay, Tone.Destination);
-  //createUI(heightOffset);
+  
+}
+function setup() {
 
+  background(200);
+  r = width / 2 - 200;
+  bgCanvas = createCanvas(windowWidth, windowHeight);
+  bgCanvas.id = "bgCanvas";
+  bgCanvas.parent("sketchDiv");
+
+  initializeCamera();
+  //manipulate field recordings 
+  SetupAudioPlayer();
 }
 
-// when document is loaded
+// when document is loaded 
 // display the intro to get user interaction to start the tone start for TONE JS 
 // load sliders - done 
 // load default json - done 
-// play default audio 
+// play default audio - done 
 
-let usParagraph;// to update texts 
 
 document.addEventListener('DOMContentLoaded', (event) => {
 
@@ -278,7 +298,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
   const sunContent = document.getElementById('sunContent');
   const usContent = document.getElementById('usContent');
   usContent.style.display = 'none';
-
 
   sunButton.addEventListener('click', function () {
     state = "sun";
@@ -374,7 +393,6 @@ function draw() {
     shifter.pitch = map(rightWristY, 0, height, -12, 12);
     player.cutoffFreq = map(noseY, 0, height, 1000, 100);
     distortion.distortion = map(noseX, 0, width, 1, 0);
-
 
     info();
   }

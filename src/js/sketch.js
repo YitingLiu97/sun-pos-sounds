@@ -20,6 +20,9 @@ How to convert the audio file into JSON but still play it as sound here?
  * chop them up based on the changing variables 
  */
 
+
+let testingBool = true;
+
 let sun_altitude, lat, lon; //sun altitude range -90 - 90 (from night time to day time) 
 let shifter, player;
 let songURL;
@@ -122,17 +125,21 @@ about.addEventListener("click", function () {
     showAbout.style.display = "none";
     about.innerHTML = "<h2>❔</h2>";
   } else {
-  
+
     showAbout.style.display = "block";
     about.innerHTML = "<h2 id='close'>✖</h2>";
   }
 });
 
-// document.getElementById("sketchDiv").addEventListener('click', () => {
-//   console.log("should play the audio");
-//   player.load(GetDefaultAudioLink());
-//   adjustFooter();
-// });
+
+document.getElementById("sketchDiv").addEventListener('click', () => {
+
+  if (testingBool == false)
+    return;
+  console.log("should play the audio");
+  player.load(GetDefaultAudioLink());
+  adjustFooter();
+});
 
 
 function preload() {
@@ -142,9 +149,14 @@ function preload() {
 
   console.log("audio url is " + Audio_URL);
   // for normal testing 
-  recordingPath = proxy.concat(Audio_URL);
+  if (testingBool) {
+    recordingPath = Audio_URL;
+
+  } else {
+    recordingPath = proxy.concat(Audio_URL);
+
+  }
   // for testing Cors Issue 
-  //recordingPath = Audio_URL;
   fetchLink();
 
   const myHeaders = new Headers();
@@ -198,8 +210,10 @@ function GetDefaultAudioLink() {
   console.log("GetDefaultAudioLink when API doesnt work");
   if (defaultJson == null)
     return;
+const nonRepeatingRandomizer = new NonRepeatingRandomizer(defaultJson.length);
 
-  indexForRadio = getRandomInt(defaultJson.length - 1);
+  indexForRadio = nonRepeatingRandomizer.getNextIndex();//(defaultJson.length - 1);
+  console.log("random number: ", indexForRadio);
   recordingLink = defaultJson[indexForRadio].url;
   rectitle = defaultJson[indexForRadio].rectitle;
   artist = defaultJson[indexForRadio].artist;
@@ -211,6 +225,8 @@ function GetDefaultAudioLink() {
   console.log("current recording link is ", recordingLink);
   return recordingLink;
 }
+
+
 // as a fall back method 
 function GetAudioFromDefaultJson() {
   fetch('./src/fallbackLocalData.json')
@@ -218,6 +234,7 @@ function GetAudioFromDefaultJson() {
     .then(data => {
       console.log(data);
       defaultJson = data;
+
     })
     .catch(error => console.log(error));
 }
@@ -326,7 +343,6 @@ function setup() {
 document.addEventListener('DOMContentLoaded', (event) => {
   // load default json 
   GetAudioFromDefaultJson();
-
   const sunContent = document.getElementById('sunContent');
   const usContent = document.getElementById('usContent');
   usContent.style.display = 'none';
@@ -467,8 +483,42 @@ function draw() {
   }
 }
 
-function getRandomInt(max) {
-  return Math.floor(Math.random() * max);
+// get random number from the ilst and once the number is used, remove from the list. 
+// until all number is used, restart the list so that it is not duplicated 
+
+// function getRandomInt(max) {
+//   return Math.floor(Math.random() * max);
+// }
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]]; // ES6 array destructuring to swap elements
+  }
+}
+class NonRepeatingRandomizer {
+  constructor(arrayLength) {
+      this.arrayLength = arrayLength;
+      this.indices = Array.from({ length: arrayLength }, (_, i) => i);
+      this.lastIndex = null; // Track the last index to avoid immediate repetition across boundaries
+      this.shuffleIndices();
+  }
+
+  shuffleIndices() {
+      shuffleArray(this.indices);
+      // Ensure the first index of the new shuffle is not the same as the last index of the previous cycle
+      if (this.indices[0] === this.lastIndex) {
+          [this.indices[0], this.indices[this.indices.length - 1]] = [this.indices[this.indices.length - 1], this.indices[0]];
+      }
+      this.currentIndex = 0;
+  }
+
+  getNextIndex() {
+      if (this.currentIndex >= this.arrayLength) {
+          this.lastIndex = this.indices[this.currentIndex - 1];
+          this.shuffleIndices();
+      }
+      return this.indices[this.currentIndex++];
+  }
 }
 
 //update the lat and draw every 20 seconds 
@@ -477,7 +527,7 @@ window.setInterval(() => {
   adjustFooter();
   playState = true;
   sun_altitude_changed = true;
- //console.log("playstate", playState)
+  //console.log("playstate", playState)
 }, 100000);
 
 function getAllData(recordingLink) {

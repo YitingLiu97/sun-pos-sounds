@@ -78,7 +78,7 @@ footer {
   color: white;
   margin: 50 auto;
   letter-spacing: .15em;
-  animation: typing 3s steps(40, end) forwards,
+  animation: typing 5s steps(40, end) forwards,
                blink-caret .75s step-end infinite;
 }
 .typewriter p:nth-child(2) {
@@ -88,7 +88,7 @@ footer {
 /* Second paragraph animation delay */
 .typewriter p:nth-child(3) {
   color: black;   
-  animation-delay: 3s; /* Delays start of the typing effect */
+  animation-delay: 5s; /* Delays start of the typing effect */
 
   animation: changeColor 4s ease 4s forwards;
           

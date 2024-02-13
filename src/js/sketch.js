@@ -89,11 +89,9 @@ soundSetting.addEventListener('click', function () {
   if (player.volume.value === -Infinity) {
     console.log("unmute");
     muteImg.src = "./assets/volume-up-solid.svg";
-
     unmutePlayer();
   } else {
     console.log("mute");
-
     muteImg.src = "./assets/volume-mute-solid.svg";
 
     mutePlayer();
@@ -127,29 +125,26 @@ about.addEventListener("click", function () {
   
     showAbout.style.display = "block";
     about.innerHTML = "<h2 id='close'>✖</h2>";
-
   }
 });
 
-document.getElementById("sketchDiv").addEventListener('click', () => {
-  console.log("should play the audio");
-  player.load(GetDefaultAudioLink());
-  adjustFooter();
-});
+// document.getElementById("sketchDiv").addEventListener('click', () => {
+//   console.log("should play the audio");
+//   player.load(GetDefaultAudioLink());
+//   adjustFooter();
+// });
 
 
 function preload() {
-
-
   issPath = "https://api.wheretheiss.at/v1/satellites/25544";
   sunPath = "https://api.ipgeolocation.io/astronomy?apiKey=b83a03b773884e748b520602f359e4b8";
   Audio_URL = `https://aporee.org/api/ext/?lat=${newLat}&lng=${newLon}`;
 
   console.log("audio url is " + Audio_URL);
   // for normal testing 
-  //recordingPath = proxy.concat(Audio_URL);
+  recordingPath = proxy.concat(Audio_URL);
   // for testing Cors Issue 
-  recordingPath = Audio_URL;
+  //recordingPath = Audio_URL;
   fetchLink();
 
   const myHeaders = new Headers();
@@ -164,7 +159,6 @@ function preload() {
   httpDo(sunPath, 'GET', readResponse);
   //read ISS API 
   httpDo(issPath, 'GET', readResponseISS);
-
 }
 // once link is fetched, the button is interactable 
 function fetchLink() {
@@ -388,7 +382,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
   loopEndSlider.addEventListener('input', function () {
     const loopEndValue = parseInt(this.value);
     player.loopEnd = loopEndValue / 500 * player.buffer.duration; // Update the Tone.js pitch shift
-    console.log("player loop end is ", player.loopEnd, player.buffer.duration);
+    //console.log("player loop end is ", player.loopEnd, player.buffer.duration);
     loopEndDisplay.textContent = `Loop End: ${loopEndValue}`; // Update the <p> text content
   });
 
@@ -479,11 +473,11 @@ function getRandomInt(max) {
 
 //update the lat and draw every 20 seconds 
 window.setInterval(() => {
-  //getAllData(recordingLink);
+  getAllData(recordingLink);
   adjustFooter();
   playState = true;
   sun_altitude_changed = true;
-  console.log("playstate", playState)
+ //console.log("playstate", playState)
 }, 100000);
 
 function getAllData(recordingLink) {
@@ -499,7 +493,7 @@ function getAllData(recordingLink) {
 
   httpDo(issPath, 'GET', readResponseISS);
   httpDo(sunPath, 'GET', readResponse);
-  console.log("getting field recordings");
+  //console.log("getting field recordings");
 }
 
 function readResponseISS(e) {

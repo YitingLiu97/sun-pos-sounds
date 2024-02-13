@@ -21,7 +21,7 @@ How to convert the audio file into JSON but still play it as sound here?
  */
 
 
-let testingBool = true;
+let testingBool = false;
 
 let sun_altitude, lat, lon; //sun altitude range -90 - 90 (from night time to day time) 
 let shifter, player;
@@ -151,10 +151,8 @@ function preload() {
   // for normal testing 
   if (testingBool) {
     recordingPath = Audio_URL;
-
   } else {
     recordingPath = proxy.concat(Audio_URL);
-
   }
   // for testing Cors Issue 
   fetchLink();
@@ -166,6 +164,8 @@ function preload() {
     mode: 'no-cors',
     cache: 'default'
   });
+
+  adjustFooter();
 
   //read sun API 
   httpDo(sunPath, 'GET', readResponse);
@@ -196,6 +196,7 @@ function fetchLink() {
       console.log(`recordingLink for index ${indexForRadio} ${recordingLink}`);
       let url = proxy.concat(recordingLink);
       player.load(url);
+      
       return url;
     }).catch((error) => {
       // fetch the deafult local json if api does not work 
@@ -210,7 +211,7 @@ function GetDefaultAudioLink() {
   console.log("GetDefaultAudioLink when API doesnt work");
   if (defaultJson == null)
     return;
-const nonRepeatingRandomizer = new NonRepeatingRandomizer(defaultJson.length);
+    const nonRepeatingRandomizer = new NonRepeatingRandomizer(defaultJson.length);
 
   indexForRadio = nonRepeatingRandomizer.getNextIndex();//(defaultJson.length - 1);
   console.log("random number: ", indexForRadio);
@@ -227,6 +228,9 @@ const nonRepeatingRandomizer = new NonRepeatingRandomizer(defaultJson.length);
 }
 
 
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}
 // as a fall back method 
 function GetAudioFromDefaultJson() {
   fetch('./src/fallbackLocalData.json')
@@ -303,6 +307,11 @@ function SetupAudioPlayer() {
   mutePlayer();  //order of the effect matters 
   player.chain(shifter, distortion, filter, feedbackDelay, Tone.Destination);
 
+// load default audio first
+  let url = GetDefaultAudioLink();
+  player.load(url);
+  adjustFooter();
+
 }
 
 function unmutePlayer() {
@@ -343,6 +352,9 @@ function setup() {
 document.addEventListener('DOMContentLoaded', (event) => {
   // load default json 
   GetAudioFromDefaultJson();
+  // at very beginning
+
+
   const sunContent = document.getElementById('sunContent');
   const usContent = document.getElementById('usContent');
   usContent.style.display = 'none';

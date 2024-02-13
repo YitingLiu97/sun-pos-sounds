@@ -21,7 +21,7 @@ How to convert the audio file into JSON but still play it as sound here?
  */
 
 
-let testingBool = false;
+let testingBool = true;
 
 let sun_altitude, lat, lon; //sun altitude range -90 - 90 (from night time to day time) 
 let shifter, player;

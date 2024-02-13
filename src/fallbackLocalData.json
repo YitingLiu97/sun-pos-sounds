@@ -1,0 +1,68 @@
+[
+  {
+    "loctitle": "Sherman Beach, Wildwood, Missouri, USA",
+    "rectitle": "Sherman Beach",
+    "lat": "38.534719315193",
+    "lng": "-90.587968999068",
+    "url": "./assets/ShermanBeach.mp3",
+    "recdate": "20.05.2023 14:57",
+    "license": "PUBLIC-DOMAIN",
+    "timezone": "America/Chicago",
+    "artist": "Pierrot Desperes"
+  },
+  {
+    "loctitle": "berlin: mergenthalerring",
+    "rectitle": "A100 - bauabschnitt 16 / federal motorway 100 - construction section 16: destroyed allotment",
+    "lat": "52.478756814172",
+    "lng": "13.461062908173",
+    "url": "./assets/CityCountryMeA100DieselstrMergenthalerringZerstoerteKleingartenanlageSpatzen201401251606OLUNO.mp3",
+    "recdate": "25.01.2014 16:06",
+    "license": "CC-BY-SA",
+    "timezone": "Europe/Berlin",
+    "artist": "henrik schröder"
+  },
+  {
+    "loctitle": "Motorway Bridge, Athens, Greece",
+    "rectitle": "Pedestrian Bridge over Motorway",
+    "lat": "38.0919861424",
+    "lng": "23.791511006167",
+    "url": "./assets/AthensKifisiastreetmarketnoisy.mp3",
+    "recdate": "19.06.2019 19:00",
+    "license": "CC-BY-SA",
+    "timezone": "Europe/Athens",
+    "artist": "Tim Ward"
+  },
+  {
+    "loctitle": "Samara",
+    "rectitle": "Samara",
+    "lat": "53.199040578735406",
+    "lng": "50.093536376953104",
+    "url": "./assets/Samara2.mp3",
+    "recdate": "07.09.2009 17:23",
+    "license": "CC-BY-SA",
+    "timezone": "Europe/Berlin",
+    "artist": "Marcus Botsch"
+  },
+  {
+    "loctitle": "Edam, ",
+    "rectitle": "Edam, ",
+    "lat": "52.510742782499996",
+    "lng": "5.048915147780001",
+    "url": "./assets/10123104Edam110316bit.mp3",
+    "recdate": "31.12.2010 11:03",
+    "license": "CC-BY-SA",
+    "timezone": "Europe/Amsterdam",
+    "artist": "damir.kustic"
+  },
+  {
+    "loctitle": "Ploshcha Pryvokzalʹna, 5, Slavutych, Kyivska oblast, Ukrajina, 07100",
+    "rectitle": "Saturday morning walk around the local fresh produce market",
+    "lat": "51.515992526629",
+    "lng": "30.754632763766",
+    "url": "./assets/LS112714.mp3",
+    "recdate": "05.05.2018 10:38",
+    "license": "PUBLIC-DOMAIN",
+    "timezone": "Europe/Kiev",
+    "artist": "Jüang Ren"
+  }
+]

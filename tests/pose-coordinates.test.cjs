@@ -11,4 +11,6 @@ for (const [width, height] of [[390, 844], [1280, 720], [1920, 1080]]) {
   assert.ok(rect.x + rect.width <= width);
   assert.ok(rect.y + rect.height <= height);
 }
+const cameraPreview = previewRect(1280, 720, 640, 480);
+assert.equal(cameraPreview.width / cameraPreview.height, 4 / 3);
 console.log('Pose coordinates scale to desktop and mobile stages.');

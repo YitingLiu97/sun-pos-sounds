@@ -14,10 +14,10 @@
     return { x: point.x * stageWidth, y: point.y * stageHeight };
   }
 
-  function previewRect(stageWidth, stageHeight) {
+  function previewRect(stageWidth, stageHeight, sourceWidth = 16, sourceHeight = 9) {
     const margin = Math.max(20, Math.min(stageWidth, stageHeight) * 0.035);
     const width = Math.min(Math.max(stageWidth * 0.26, 150), 320);
-    const height = width * 9 / 16;
+    const height = width * sourceHeight / sourceWidth;
     return { x: stageWidth - width - margin, y: margin, width, height };
   }
 

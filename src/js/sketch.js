@@ -481,7 +481,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 function draw() {
   background(0);
   if (state === "us" && video && video.elt.readyState >= 2) {
-    const preview = PoseCoordinates.previewRect(width, height);
+    const preview = PoseCoordinates.previewRect(width, height, video.elt.videoWidth, video.elt.videoHeight);
     push();
     translate(preview.x + preview.width, preview.y);
     scale(-1, 1);

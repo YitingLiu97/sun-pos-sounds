@@ -67,8 +67,11 @@
     </div>
   </div>
 
-  <div id="sliderControl" class="UI-Container">
-    <p class="panel-kicker">Shape the soundscape</p>
+  <button id="controlsToggle" type="button" aria-controls="sliderControl" aria-expanded="false" hidden>
+    <span id="controlsToggleLabel">Sound controls</span><span aria-hidden="true">☷</span>
+  </button>
+  <div id="sliderControl" class="UI-Container" role="region" aria-labelledby="controlsHeading" hidden>
+    <p id="controlsHeading" class="panel-kicker">Shape the soundscape</p>
     <div class="Button-Container" role="group" aria-label="Interaction mode">
       <button id="sunButton" type="button" aria-pressed="true">Sun</button>
       <button id="usButton" type="button" aria-pressed="false">Us</button>

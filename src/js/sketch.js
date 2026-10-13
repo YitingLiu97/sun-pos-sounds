@@ -108,8 +108,27 @@ soundSetting.addEventListener('click', function () {
 });
 let sliderControl = document.getElementById("sliderControl");
 let intro = document.getElementById("intro");
+let controlsToggle = document.getElementById('controlsToggle');
+let controlsToggleLabel = document.getElementById('controlsToggleLabel');
 
 let startButton = document.getElementById('startButton');
+
+function setControlsOpen(open) {
+  sliderControl.hidden = !open;
+  controlsToggle.setAttribute('aria-expanded', String(open));
+  controlsToggleLabel.textContent = open ? 'Hide controls' : 'Sound controls';
+}
+
+controlsToggle.addEventListener('click', function () {
+  setControlsOpen(sliderControl.hidden);
+});
+
+document.addEventListener('keydown', function (event) {
+  if (event.key === 'Escape' && !sliderControl.hidden) {
+    setControlsOpen(false);
+    controlsToggle.focus();
+  }
+});
 
 startButton.addEventListener('click', async function () {
   await Tone.start();
@@ -117,13 +136,9 @@ startButton.addEventListener('click', async function () {
   if (player && player.loaded && player.state !== 'started') player.start();
   unmutePlayer();
   console.log("intro button clicked")
-  if (intro.style.display == "none") {
-    sliderControl.style.display = "none";
-    intro.style.display = "flex";
-  } else {
-    sliderControl.style.display = "flex";
-    intro.style.display = "none";
-  }
+  intro.style.display = 'none';
+  controlsToggle.hidden = false;
+  setControlsOpen(false);
 });
 
 

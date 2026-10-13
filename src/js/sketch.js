@@ -79,8 +79,6 @@ let issPath, sunPath;
 let playState = false;
 let sun_altitude_changed = false;
 
-let about = document.getElementById("about");
-let showAbout = document.getElementById("showAbout");
 
 let sunButton = document.getElementById('sunButton');
 let usButton = document.getElementById('usButton');
@@ -125,19 +123,6 @@ startButton.addEventListener('click', async function () {
   } else {
     sliderControl.style.display = "flex";
     intro.style.display = "none";
-  }
-});
-
-
-about.addEventListener("click", function () {
-  console.log("? clicked")
-  if (showAbout.style.display == "block") {
-    showAbout.style.display = "none";
-    about.innerHTML = "<h2>❔</h2>";
-  } else {
-
-    showAbout.style.display = "block";
-    about.innerHTML = "<h2 id='close'>✖</h2>";
   }
 });
 

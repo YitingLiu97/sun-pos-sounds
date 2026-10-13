@@ -73,12 +73,9 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 2px s
 #soundSetting, #about { position: fixed; top: 1.3rem; z-index: 150; display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border: 1px solid rgba(255,255,255,0.35); border-radius: 50%; background: rgba(0,0,0,0.55); color: var(--paper); cursor: pointer; }
 #soundSetting { left: clamp(1.25rem, 4vw, 3rem); }
 #soundSetting img { width: 1.15rem; height: 1.15rem; filter: invert(1); }
-#about { right: clamp(1.25rem, 4vw, 3rem); }
-#about h2 { margin: 0; font-size: 1rem; font-weight: 400; }
+#about { right: clamp(1.25rem, 4vw, 3rem); font-size: 1.05rem; font-weight: 700; text-decoration: none; }
 #soundSetting:hover, #about:hover { border-color: var(--accent); color: var(--accent); }
-#showAbout { position: fixed; top: 4.5rem; right: clamp(1.25rem, 4vw, 3rem); z-index: 160; display: none; width: min(330px, calc(100vw - 2.5rem)); padding: 1.25rem; border: 1px solid rgba(255,255,255,0.35); background: rgba(0,0,0,0.93); color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
-#showAbout p { margin: 0 0 0.8rem; }
-#showAbout p:last-child { margin-bottom: 0; }
+#about:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 footer { position: fixed; bottom: 1.2rem; left: 50%; z-index: 30; width: min(100% - 3rem, 920px); transform: translateX(-50%); color: rgba(255,255,255,0.68); font-size: 0.72rem; line-height: 1.5; text-align: center; pointer-events: none; }
 
 @media (max-width: 600px) {

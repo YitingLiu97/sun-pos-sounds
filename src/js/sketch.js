@@ -24,7 +24,7 @@ How to convert the audio file into JSON but still play it as sound here?
 let testingBool = false;
 
 let sun_altitude, lat, lon; //sun altitude range -90 - 90 (from night time to day time) 
-let shifter, player;
+let shifter, player, distortion;
 let songURL;
 //set default lat and lon for Aporee API
 let newLat = 52.5;

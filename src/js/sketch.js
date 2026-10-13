@@ -59,6 +59,11 @@ const proxy = "https://mighty-shelf-54274-3fd4a254a0a2.herokuapp.com/";
 let video;
 let poseNet;
 let poses = [];
+let cameraLoading = false;
+let experienceStarted = false;
+let lastInfoUpdate = 0;
+let lastAudioUpdate = 0;
+let recordingQueue;
 let noseX, noseY, rightWristX, rightWristY, leftWristX, leftWristY, rightKneeX, rightKneeY;
 
 let factor = 3,
@@ -106,7 +111,10 @@ let intro = document.getElementById("intro");
 
 let startButton = document.getElementById('startButton');
 
-startButton.addEventListener('click', function () {
+startButton.addEventListener('click', async function () {
+  await Tone.start();
+  experienceStarted = true;
+  if (player && player.loaded && player.state !== 'started') player.start();
   unmutePlayer();
   console.log("intro button clicked")
   if (intro.style.display == "none") {
@@ -154,28 +162,14 @@ function preload() {
   } else {
     recordingPath = proxy.concat(Audio_URL);
   }
-  // for testing Cors Issue 
-  fetchLink();
-
-  const myHeaders = new Headers();
-  const myRequest = new Request(recordingPath, {
-    method: 'GET',
-    headers: myHeaders,
-    mode: 'no-cors',
-    cache: 'default'
-  });
-
-  adjustFooter();
-
-  //read sun API 
-  httpDo(sunPath, 'GET', readResponse);
-  //read ISS API 
-  httpDo(issPath, 'GET', readResponseISS);
+  // Data and audio begin after the player and local fallback are ready.
 }
 // once link is fetched, the button is interactable 
 function fetchLink() {
+  if (!player) return;
+  const nextRecordingPath = testingBool ? Audio_URL : proxy.concat(Audio_URL);
   // fetch the api link 
-  fetch(recordingPath, {
+  fetch(nextRecordingPath, {
     "headers": {
       "sec-fetch-mode": "cors",
     },
@@ -195,25 +189,30 @@ function fetchLink() {
       recdate = myBlob[indexForRadio].recdate;
       console.log(`recordingLink for index ${indexForRadio} ${recordingLink}`);
       let url = proxy.concat(recordingLink);
-      player.load(url);
+      player.load(url).catch(() => loadFallbackRecording());
       
       return url;
     }).catch((error) => {
       // fetch the deafult local json if api does not work 
-      defaultLink = GetDefaultAudioLink();
+      const defaultLink = GetDefaultAudioLink();
       console.log("api fetch error: ", error);
-      player.load(defaultLink);
+      if (defaultLink) player.load(defaultLink).catch(console.error);
       return defaultLink;
     });
 }
 
+function loadFallbackRecording() {
+  const url = GetDefaultAudioLink();
+  if (url && player) return player.load(url);
+}
+
 function GetDefaultAudioLink() {
   console.log("GetDefaultAudioLink when API doesnt work");
-  if (defaultJson == null)
+  if (!defaultJson || !defaultJson.length)
     return;
-    const nonRepeatingRandomizer = new NonRepeatingRandomizer(defaultJson.length);
+  if (!recordingQueue) recordingQueue = new NonRepeatingRandomizer(defaultJson.length);
 
-  indexForRadio = nonRepeatingRandomizer.getNextIndex();//(defaultJson.length - 1);
+  indexForRadio = recordingQueue.getNextIndex();
   console.log("random number: ", indexForRadio);
   recordingLink = defaultJson[indexForRadio].url;
   rectitle = defaultJson[indexForRadio].rectitle;
@@ -233,10 +232,9 @@ function getRandomInt(max) {
 }
 // as a fall back method 
 function GetAudioFromDefaultJson() {
-  fetch('./src/fallbackLocalData.json')
+  return fetch('./src/fallbackLocalData.json')
     .then(response => response.json())
     .then(data => {
-      console.log(data);
       defaultJson = data;
 
     })
@@ -245,27 +243,44 @@ function GetAudioFromDefaultJson() {
 
 function windowResized() {
   // Resize the canvas when the window is resized
-  resizeCanvas(windowWidth, windowHeight);
-  width = windowWidth;
-  heighht = windowHeight;
+  resizeCanvas(min(windowWidth, 1920), min(windowHeight, 1080));
+  r = min(width, height) * 0.32;
 
   if (windowHeight < 768 && windowWidth < 600) {
     heightOffset = 300 / windowHeight * windowWidth;
   } else {
     heightOffset = 100;
   }
-  info();
+  if (isModelReady && player) info();
 }
 
 function adjustFooter() {
   let footer = document.getElementById('footer');
-  infoString = `The ISS is currently at Latitude of ${lat} and Longitude of ${lon}. The ${rectitle} is uploaded by ${artist} on ${recdate} in ${timeZone}`;
-  footer.innerHTML = infoString;
+  infoString = `${lat == null ? 'A field recording' : `ISS latitude ${lat}, longitude ${lon}.`} ${rectitle || 'Field recording'} by ${artist || 'Radio Aporee'}${recdate ? `, recorded ${recdate}` : ''}.`;
+  if (footer.textContent !== infoString) footer.textContent = infoString;
 }
-function initializeCamera() {
+async function initializeCamera() {
+  if (cameraLoading || video) return;
+  cameraLoading = true;
+  usParagraph.textContent = 'Loading movement tracking…';
+  try {
+    if (!window.ml5) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = './src/js/ml5.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+  } catch (error) {
+    cameraLoading = false;
+    usParagraph.textContent = 'Movement tracking could not load. The Sun controls are still available.';
+    return;
+  }
   console.log("initialize camera");
   video = createCapture(VIDEO);
-  video.size(width, height);
+  video.size(640, 360);
   //single detection for now 
   poseNet = ml5.poseNet(video, {
     flipHorizontal: true
@@ -276,13 +291,16 @@ function initializeCamera() {
   });
   // Hide the video element, and just show the canvas
   video.hide();
+  cameraLoading = false;
 }
 
 function SetupAudioPlayer() {
   shifter = new Tone.PitchShift();
   player = new Tone.Player({
-    "onload": Tone.noOp,
-    "autostart": true,
+    "onload": () => {
+      if (experienceStarted && player.state !== 'started') player.start();
+    },
+    "autostart": false,
     "loop": true, //set the loop to be true to use loopstart and loopend
     "loopStart": loopStart,
     "loopEnd": loopEnd,
@@ -309,7 +327,7 @@ function SetupAudioPlayer() {
 
 // load default audio first
   let url = GetDefaultAudioLink();
-  player.load(url);
+  if (url) player.load(url).catch(console.error);
   adjustFooter();
 
 }
@@ -328,15 +346,21 @@ function mutePlayer() {
 
 }
 function setup() {
-
-  background(200);
-  r = width / 2 - 200;
-  bgCanvas = createCanvas(windowWidth, windowHeight);
+  pixelDensity(1);
+  frameRate(30);
+  bgCanvas = createCanvas(min(windowWidth, 1920), min(windowHeight, 1080));
+  bgCanvas.style('width', '100vw');
+  bgCanvas.style('height', '100vh');
+  r = min(width, height) * 0.32;
   bgCanvas.id = "bgCanvas";
   bgCanvas.parent("sketchDiv");
 
-  initializeCamera();
-  SetupAudioPlayer();
+  GetAudioFromDefaultJson().then(() => {
+    SetupAudioPlayer();
+    fetchLink();
+    httpDo(issPath, 'GET', readResponseISS);
+    httpDo(sunPath, 'GET', readResponse);
+  });
   const startBtn = document.getElementById('startButton');
   startBtn.style.pointerEvents = 'auto';
   startBtn.style.opacity = '1';
@@ -372,6 +396,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     console.log("usButton is pressed");
     sunContent.style.display = 'none';
     usContent.style.display = 'block';
+    initializeCamera();
   });
 
   usParagraph = document.getElementById('usParagraph');
@@ -419,7 +444,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
   cutoffFreqSlider.addEventListener('input', function () {
     const cutoffFreqValue = parseFloat(this.value);
-    player.cutoffFreq = cutoffFreqValue; // Update the Tone.js pitch shift
+    filter.frequency.value = cutoffFreqValue;
     cutoffFreqDisplay.textContent = `Cutoff Frequency: ${cutoffFreqValue}`; // Update the <p> text content
   });
 
@@ -427,72 +452,55 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 
 function draw() {
-
   background(0);
-
-  if (state == "us" && isModelReady) {
+  if (state === "us" && isModelReady) {
     push();
     translate(width, 0);
     scale(-1, 1);
-    image(video, width / 8 * 7, 0, width / 8, width / 8 / 16 * 9); //video on canvas, position, dimensions
+    image(video, width * 0.875, 0, width * 0.125, width * 0.125 * 9 / 16);
     pop();
-
     drawKeypoints();
-    noStroke();
-
-    if (poses.length > 0) {
+    if (poses.length > 0 && player && player.loaded &&
+        [noseX, noseY, leftWristX, rightWristX, rightWristY].every(Number.isFinite)) {
       push();
-      ellipse(noseX, noseY, 10, 10);
+      noStroke();
       fill(249, 215, 28);
+      ellipse(noseX, noseY, 10, 10);
       ellipse(leftWristX, leftWristY, 10, 10);
       ellipse(rightWristX, rightWristY, 10, 10);
       pop();
-
-      if (player == null)
-        return;
-      // Validate and set loopStart
-      let loopStartValue = map(leftWristX, 0, width, 0, 50); // Example mapping function
-      if (!isFinite(loopStartValue) || loopStartValue < 0) {
-        loopStartValue = 0; // Default to 0 if non-finite or negative
-      } else if (loopStartValue > player.buffer.duration) {
-        loopStartValue = player.buffer.duration; // Clamp to buffer duration
+      if (millis() - lastAudioUpdate > 100) {
+        const length = player.buffer.duration;
+        const start = constrain(map(leftWristX, 0, 640, 0, length * 0.8), 0, length * 0.8);
+        const end = constrain(map(rightWristX, 0, 640, start + 0.1, length), start + 0.1, length);
+        player.loopStart = start;
+        player.loopEnd = end;
+        shifter.pitch = constrain(map(rightWristY, 0, 360, 12, -12), -12, 12);
+        filter.frequency.value = constrain(map(noseY, 0, 360, 2000, 150), 150, 2000);
+        distortion.distortion = constrain(map(noseX, 0, 640, 1, 0), 0, 1);
+        lastAudioUpdate = millis();
       }
-      player.loopStart = loopStartValue;
-      // Validate and set loopEnd
-      let loopEndValue = map(rightWristX, 0, width, 0, player.buffer.duration); // Adjusted mapping
-      if (!isFinite(loopEndValue) || loopEndValue < 0) {
-        loopEndValue = player.buffer.duration; // Default to buffer duration if non-finite or negative
-      } else if (loopEndValue > player.buffer.duration) {
-        loopEndValue = player.buffer.duration; // Clamp to buffer duration
+      if (millis() - lastInfoUpdate > 300) {
+        info();
+        lastInfoUpdate = millis();
       }
-      player.loopEnd = loopEndValue;
-      shifter.pitch = rightWristY == null ? map(noseX, 0, height, -12, 12) : map(rightWristY, 0, height, -12, 12);
-      player.cutoffFreq = map(noseY, 0, height, 1000, 100);
-      distortion.distortion = map(noseX, 0, width, 1, 0);
-
-      info();
     }
   }
-
+  const pitch = shifter ? shifter.pitch : 0;
+  const count = constrain(round(map(pitch, -12, 12, 12, 56)), 12, 56);
+  const distortionLevel = distortion ? map(distortion.distortion, 0, 1, 1, 20) : 4;
+  const loopRange = player && player.loaded ? player.loopEnd - player.loopStart : 1;
+  const loopLevel = constrain(map(loopRange, 0, player && player.loaded ? player.buffer.duration : 100, 1, 8), 1, 8);
+  const cutoffLevel = filter ? map(filter.frequency.value, 150, 10000, 1, 5) : 2;
   push();
   translate(width / 2, height / 2);
   factor += 0.015;
-  for (let i = 0; i < total; i++) {
-    const a = getVector(i, total);
-    const b = getVector(i * factor, total);
-    wobble(a.x, a.y, b.x, b.y);
-
+  for (let i = 0; i < count; i++) {
+    const a = getVector(i, count);
+    const b = getVector(i * factor, count);
+    wobble(a.x, a.y, b.x, b.y, distortionLevel, loopLevel, cutoffLevel, count);
   }
   pop();
-  //map the sun altitude to set the duration time 
-  if (sun_altitude_changed) {
-    sunToDur = map(sun_altitude, -90, 90, 1, 400);
-    player.duration = sunToDur.toFixed(2);
-    console.log("suntoDur - player duration", sunToDur.toFixed(2));
-    sun_altitude_changed = false;
-  } else {
-    player.duration = 100;
-  }
 }
 
 // get random number from the ilst and once the number is used, remove from the list. 
@@ -535,10 +543,9 @@ class NonRepeatingRandomizer {
 
 //update the lat and draw every 20 seconds 
 window.setInterval(() => {
-  getAllData(recordingLink);
+  if (!player || !player.loaded || document.hidden) return;
+  getAllData();
   adjustFooter();
-  playState = true;
-  sun_altitude_changed = true;
   //console.log("playstate", playState)
 }, 100000);
 
@@ -566,19 +573,22 @@ function readResponseISS(e) {
 
 function readResponse(response) {
   let data = JSON.parse(response);
-  sun_altitude = data.sun_altitude;
-  console.log("sun_altitude", sun_altitude.toFixed(2));
+  sun_altitude = Number(data.sun_altitude);
+  if (Number.isFinite(sun_altitude) && filter && state === 'sun') {
+    filter.frequency.value = constrain(map(sun_altitude, -90, 90, 250, 6000), 250, 6000);
+  }
 
 }
 //get webcam data to manipulate some thing - simple posenet - add graphics later 
 // would be a symphony of sun and us - sun is always playing in the background; human movement geneerate something else
 function info() {
-  usParagraph.innerHTML = "With webcam, you can join in the symphony. <br><br>" +
+  const nextText = "With webcam, you can join in the symphony. <br><br>" +
     ` Move your head horizontally to distort the recording:  ${Number(distortion.distortion).toFixed(2)} <br><br>` +
-    ` Move your head vertically to choose the cut off frequency:  ${Number(player.cutoffFreq).toFixed(2)} <br><br>` +
+    ` Move your head vertically to choose the cut off frequency:  ${Number(filter.frequency.value).toFixed(0)} <br><br>` +
     ` Move your right hand vertically to change pitch: ${Number(shifter.pitch).toFixed(0)} <br><br>` +
     ` Move your left hand to set the loop start point: ${Number(player.loopStart).toFixed(0)} <br><br>` +
     ` Move your right hand to set the loop end point: ${Number(player.loopEnd).toFixed(0)} <br><br>`;
+  if (usParagraph.innerHTML !== nextText) usParagraph.innerHTML = nextText;
 }
 
 // simple visuals
@@ -589,62 +599,32 @@ function getVector(index, total) {
   return v;
 }
 
-function wobble(x, y, a, b) {
-  //with slider 
-  if (state == "sun") {
-    distortionLevel = map(distortion.distortion, 0, 1, 1, 20);
-    total = map(shifter.pitch, -12, 12, 10, 150);
-    loopRange = player.loopEnd - player.loopStart;
-    loopLevel = map(loopRange, 0, player.loopEnd + player.loopStart, 1, 10);
-    cutoffLevel = map(player.cutoffFreq, 0, 10000, 1, 5);
-  }
-
-  if (state == "us") {
-
-    if (noseX && noseY) {
-      //with posenet 
-      distortionLevel = map(noseX, 0, width, 1, 10);
-      total = map(noseY, 0, height, 10, 150);
-      loopRange = rightWristX - leftWristX;
-      loopLevel = map(loopRange, 0, width, 1, 10);
-      cutoffLevel = map(rightWristX, 0, 10000, 1, 5);
-
-    }
-  }
-
+function wobble(x, y, a, b, distortionLevel, loopLevel, cutoffLevel, count) {
   zoff += 0.5;
-  if (zoff > 2) {
-    zoff = 0;
-  }
-
+  if (zoff > 2) zoff = 0.5;
   x += random(-2 * zoff, 2 * zoff);
   y += random(-1 * zoff, 1 * zoff);
   a += random(-2 * zoff, 2 * zoff);
   b += random(-5 * zoff, 5 * zoff);
-  // let col; //create gradient color 
-
   stroke("white");
   strokeWeight(distortionLevel / 20 * zoff);
   noFill();
   line(x * loopLevel, y * loopLevel, a, b);
-  line(x * r / width / b, y * r / height, a, b);
-
+  line(x * r / width / (abs(b) + 1), y * r / height, a, b);
   noStroke();
   fill("white");
-  ellipse(a * total * 2, b * distortionLevel * 2, y / total);
-  rect(a * total / 2, b * distortionLevel * 2, y / total, x / distortionLevel);
-
+  ellipse(a * count * 2, b * distortionLevel * 2, y / count);
+  rect(a * count / 2, b * distortionLevel * 2, y / count, x / distortionLevel);
   stroke("white");
   strokeWeight(cutoffLevel / zoff / 10);
   noFill();
-  ellipse(x * cutoffLevel, y * cutoffLevel / total, b / cutoffLevel * zoff);
-
+  ellipse(x * cutoffLevel, y * cutoffLevel / count, b / cutoffLevel * zoff);
 }
 
 let isModelReady = false;
 function modelReady() {
   console.log('Model Loaded and Update Audio Effects');
-  info();
+  if (player) info();
   isModelReady = true;
 }
 function drawKeypoints() {

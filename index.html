@@ -57,18 +57,22 @@
         href="https://ipgeolocation.io/documentation/ip-geolocation-api.html">altitude of the sun</a> .</p>
   </div>
 
-  <div class="typewriter" id="intro" class="UI-Container">
-    <h2>Sun and Us</h2>
-    <p>An interactive audio experience that creates a symphony of field recordings from the sun and us.</p>
-    <p>Explore the sun’s soundscape. Select Us to add your movement with a camera.</p>
-    <br>
-    <button id="startButton">Start Experience</button>
+  <div id="intro" class="intro">
+    <div class="intro-content">
+      <p class="eyebrow">Interactive sound / Yiting Liu</p>
+      <h1>Sun <em>and</em> Us</h1>
+      <p class="intro-description">A symphony of field recordings shaped by the sun, a place, and you.</p>
+      <p class="intro-support">Explore with the Sun controls. Choose Us when you are ready to add your movement with a camera.</p>
+      <button id="startButton" type="button">Enter the soundscape <span aria-hidden="true">↗</span></button>
+      <p class="intro-note">Audio begins when you enter. Camera access is requested only in Us mode.</p>
+    </div>
   </div>
 
   <div id="sliderControl" class="UI-Container">
-    <div class="Button-Container">
-      <button id="sunButton">Sun</button>
-      <button id="usButton">Us</button>
+    <p class="panel-kicker">Shape the soundscape</p>
+    <div class="Button-Container" role="group" aria-label="Interaction mode">
+      <button id="sunButton" type="button" aria-pressed="true">Sun</button>
+      <button id="usButton" type="button" aria-pressed="false">Us</button>
     </div>
 
     <div id="sunContent" class="controlContainer">
@@ -96,7 +100,7 @@
     </div>
 
     <div id="usContent" class="controlContainer">
-      <p id="usParagraph">With webcam, you can join in the symphony.</p>
+      <p id="usParagraph" role="status" aria-live="polite">Choose Us to join the symphony with your movement.</p>
       <!-- <p>Move your head vertically to choose the cut off frequency: </p>
       <p>Move your right hand vertically to change pitch: </p>
       <p>Move your left hand to set the loop start point: </p>
@@ -114,6 +118,7 @@
 
   <footer  id="footer" class="footer"></footer>
 
+  <script src="src/js/pose-coordinates.js"></script>
   <script src="src/js/sketch.js"></script>
 </body>
 

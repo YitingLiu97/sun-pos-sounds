@@ -7,6 +7,8 @@ The [live demo](https://sunandus.netlify.app/) begins with a curated local field
 
 The October 2026 maintenance update repairs startup errors caused by the moving `ml5@latest` dependency and audio loading before player initialization. It loads the repository's compatible PoseNet build only when Us is selected, uses a 640 × 360 camera feed, caps the drawing canvas at 1920 × 1080, runs the drawing loop at 30 fps, limits per-frame geometry, and updates audio and on-screen values at separate rates. Local recordings remain available when the original remote audio proxy is unavailable.
 
+The interaction update centers the opening screen, improves the mode controls, and scales tracked points from camera coordinates into the full browser stage. It waits for video frames before starting PoseNet and shows a camera or model status message when tracking is unavailable.
+
 Run locally from the repository root with `python3 -m http.server 3010`, then open `http://localhost:3010/`. The site has no build step. Browsers require a user gesture before audio can play and camera permission only for Us mode.
 
 # Concept

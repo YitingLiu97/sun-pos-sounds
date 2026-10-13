@@ -60,6 +60,8 @@ let video;
 let poseNet;
 let poses = [];
 let cameraLoading = false;
+let cameraReadyTimer;
+let modelReadyTimer;
 let experienceStarted = false;
 let lastInfoUpdate = 0;
 let lastAudioUpdate = 0;
@@ -278,20 +280,41 @@ async function initializeCamera() {
     usParagraph.textContent = 'Movement tracking could not load. The Sun controls are still available.';
     return;
   }
-  console.log("initialize camera");
-  video = createCapture(VIDEO);
+  if (typeof ml5.poseNet !== 'function') {
+    usParagraph.textContent = 'Movement tracking is unavailable. You can still use the Sun controls.';
+    cameraLoading = false;
+    return;
+  }
+  const startPoseNet = () => {
+    if (poseNet || !video || !video.elt.videoWidth) return;
+    clearTimeout(cameraReadyTimer);
+    usParagraph.textContent = 'Camera ready. Loading body tracking…';
+    try {
+      poseNet = ml5.poseNet(video, { flipHorizontal: true }, modelReady);
+      poseNet.on('pose', (results) => { poses = results; });
+      modelReadyTimer = setTimeout(() => {
+        if (!isModelReady) usParagraph.textContent = 'The camera is ready, but body tracking is taking longer than expected. Try Sun controls or reload this page.';
+      }, 20000);
+    } catch (error) {
+      console.error('Pose tracker failed to start', error);
+      usParagraph.textContent = 'Body tracking could not start. The Sun controls are still available.';
+    }
+    cameraLoading = false;
+  };
+  video = createCapture(VIDEO, startPoseNet);
   video.size(640, 360);
-  //single detection for now 
-  poseNet = ml5.poseNet(video, {
-    flipHorizontal: true
-  }, modelReady);
-
-  poseNet.on('pose', function (results) {
-    poses = results;
-  });
-  // Hide the video element, and just show the canvas
   video.hide();
-  cameraLoading = false;
+  video.elt.addEventListener('loadeddata', startPoseNet, { once: true });
+  video.elt.addEventListener('error', () => {
+    usParagraph.textContent = 'Camera feed unavailable. Check browser camera permission and try again.';
+    cameraLoading = false;
+  }, { once: true });
+  cameraReadyTimer = setTimeout(() => {
+    if (!poseNet) {
+      usParagraph.textContent = 'Waiting for the camera. Check browser camera permission, then reload this page if needed.';
+      cameraLoading = false;
+    }
+  }, 12000);
 }
 
 function SetupAudioPlayer() {
@@ -385,6 +408,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
   sunButton.addEventListener('click', function () {
     state = "sun";
+    sunButton.setAttribute('aria-pressed', 'true');
+    usButton.setAttribute('aria-pressed', 'false');
     console.log("sunButton is pressed");
     sunContent.style.display = 'block';
     usContent.style.display = 'none';
@@ -393,6 +418,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
   usButton.addEventListener('click', function () {
     state = "us";
+    sunButton.setAttribute('aria-pressed', 'false');
+    usButton.setAttribute('aria-pressed', 'true');
     console.log("usButton is pressed");
     sunContent.style.display = 'none';
     usContent.style.display = 'block';
@@ -453,37 +480,44 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
 function draw() {
   background(0);
-  if (state === "us" && isModelReady) {
+  if (state === "us" && video && video.elt.readyState >= 2) {
+    const preview = PoseCoordinates.previewRect(width, height);
     push();
-    translate(width, 0);
+    translate(preview.x + preview.width, preview.y);
     scale(-1, 1);
-    image(video, width * 0.875, 0, width * 0.125, width * 0.125 * 9 / 16);
+    image(video, 0, 0, preview.width, preview.height);
     pop();
+    push();
+    noFill();
+    stroke(249, 215, 28, 180);
+    rect(preview.x, preview.y, preview.width, preview.height);
+    pop();
+  }
+  if (state === "us" && isModelReady) {
     drawKeypoints();
-    if (poses.length > 0 && player && player.loaded &&
-        [noseX, noseY, leftWristX, rightWristX, rightWristY].every(Number.isFinite)) {
-      push();
-      noStroke();
-      fill(249, 215, 28);
-      ellipse(noseX, noseY, 10, 10);
-      ellipse(leftWristX, leftWristY, 10, 10);
-      ellipse(rightWristX, rightWristY, 10, 10);
-      pop();
-      if (millis() - lastAudioUpdate > 100) {
-        const length = player.buffer.duration;
-        const start = constrain(map(leftWristX, 0, 640, 0, length * 0.8), 0, length * 0.8);
-        const end = constrain(map(rightWristX, 0, 640, start + 0.1, length), start + 0.1, length);
-        player.loopStart = start;
-        player.loopEnd = end;
-        shifter.pitch = constrain(map(rightWristY, 0, 360, 12, -12), -12, 12);
-        filter.frequency.value = constrain(map(noseY, 0, 360, 2000, 150), 150, 2000);
-        distortion.distortion = constrain(map(noseX, 0, 640, 1, 0), 0, 1);
-        lastAudioUpdate = millis();
+    const landmarks = [[noseX, noseY], [leftWristX, leftWristY], [rightWristX, rightWristY]];
+    push();
+    noStroke();
+    fill(249, 215, 28);
+    for (const [x, y] of landmarks) {
+      if (Number.isFinite(x) && Number.isFinite(y)) {
+        const stage = PoseCoordinates.stagePoint({ x, y }, width, height);
+        ellipse(stage.x, stage.y, 14, 14);
       }
-      if (millis() - lastInfoUpdate > 300) {
-        info();
-        lastInfoUpdate = millis();
-      }
+    }
+    pop();
+    if (player && player.loaded && millis() - lastAudioUpdate > 100) {
+      const length = player.buffer.duration;
+      if (Number.isFinite(leftWristX)) player.loopStart = constrain(leftWristX * length * 0.8, 0, length * 0.8);
+      if (Number.isFinite(rightWristX)) player.loopEnd = constrain(player.loopStart + rightWristX * (length - player.loopStart), player.loopStart + 0.1, length);
+      if (Number.isFinite(rightWristY)) shifter.pitch = constrain(12 - rightWristY * 24, -12, 12);
+      if (Number.isFinite(noseY)) filter.frequency.value = constrain(2000 - noseY * 1850, 150, 2000);
+      if (Number.isFinite(noseX)) distortion.distortion = constrain(1 - noseX, 0, 1);
+      lastAudioUpdate = millis();
+    }
+    if (player && millis() - lastInfoUpdate > 300) {
+      info();
+      lastInfoUpdate = millis();
     }
   }
   const pitch = shifter ? shifter.pitch : 0;
@@ -624,28 +658,22 @@ function wobble(x, y, a, b, distortionLevel, loopLevel, cutoffLevel, count) {
 let isModelReady = false;
 function modelReady() {
   console.log('Model Loaded and Update Audio Effects');
-  if (player) info();
+  clearTimeout(modelReadyTimer);
   isModelReady = true;
+  if (player) info();
 }
 function drawKeypoints() {
-  for (let i = 0; i < poses.length; i++) {
-
-    let pose = poses[i].pose;
-    for (let j = 0; j < pose.keypoints.length; j++) {
-      let keypoint = pose.keypoints[j];
-      if (keypoint.score > 0.9) {
-        if (keypoint.part === 'nose') {
-          noseX = keypoint.position.x;
-          noseY = keypoint.position.y;
-        } if (keypoint.part === 'leftWrist') {
-          leftWristX = keypoint.position.x;
-          leftWristY = keypoint.position.y;
-        } if (keypoint.part === 'rightWrist') {
-          rightWristX = keypoint.position.x;
-          rightWristY = keypoint.position.y;
-        }
-      }
-    }
+  noseX = noseY = leftWristX = leftWristY = rightWristX = rightWristY = NaN;
+  const pose = poses[0] && poses[0].pose;
+  if (!pose || !video) return;
+  const sourceWidth = video.elt.videoWidth || video.width || 640;
+  const sourceHeight = video.elt.videoHeight || video.height || 360;
+  for (const keypoint of pose.keypoints) {
+    if (keypoint.score < 0.55) continue;
+    const point = PoseCoordinates.normalize(keypoint.position, sourceWidth, sourceHeight);
+    if (!point) continue;
+    if (keypoint.part === 'nose') { noseX = point.x; noseY = point.y; }
+    if (keypoint.part === 'leftWrist') { leftWristX = point.x; leftWristY = point.y; }
+    if (keypoint.part === 'rightWrist') { rightWristX = point.x; rightWristY = point.y; }
   }
-
 }
